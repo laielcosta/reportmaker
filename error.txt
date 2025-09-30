@@ -1,0 +1,21 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. Todos los derechos reservados.
+
+Instale la versión más reciente de PowerShell para obtener nuevas características y mejoras. https://aka.ms/PSWindows
+
+PS C:\Users\nttdata\Downloads\RCA_for_ASKEY_1.3> node .\channels.js
+C:\Users\nttdata\Downloads\RCA_for_ASKEY_1.3\node_modules\puppeteer-core\lib\cjs\puppeteer\node\BrowserLauncher.js:298
+                    throw new Error(`Could not find Chrome (ver. ${this.puppeteer.browserVersion}). This can occur if either\n` +
+                          ^
+
+Error: Could not find Chrome (ver. 132.0.6834.110). This can occur if either
+ 1. you did not perform an installation before running the script (e.g. `npx puppeteer browsers install chrome`) or
+ 2. your cache path is incorrectly configured (which is: C:\Users\nttdata\.cache\puppeteer).
+For (2), check out our guide on configuring puppeteer at https://pptr.dev/guides/configuration.
+    at ChromeLauncher.resolveExecutablePath (C:\Users\nttdata\Downloads\RCA_for_ASKEY_1.3\node_modules\puppeteer-core\lib\cjs\puppeteer\node\BrowserLauncher.js:298:27)
+    at ChromeLauncher.computeLaunchArguments (C:\Users\nttdata\Downloads\RCA_for_ASKEY_1.3\node_modules\puppeteer-core\lib\cjs\puppeteer\node\ChromeLauncher.js:93:24)
+    at async ChromeLauncher.launch (C:\Users\nttdata\Downloads\RCA_for_ASKEY_1.3\node_modules\puppeteer-core\lib\cjs\puppeteer\node\BrowserLauncher.js:84:28)
+    at async C:\Users\nttdata\Downloads\RCA_for_ASKEY_1.3\channels.js:70:21
+
+Node.js v22.19.0
+PS C:\Users\nttdata\Downloads\RCA_for_ASKEY_1.3>
