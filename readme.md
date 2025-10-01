@@ -1,19 +1,49 @@
-# 📋 ReportMaker - Generador de Informes de Reparos
+# 📋 ReportMaker v1.1 - Generador de Informes de Reparos
 
 ## 🎯 Descripción
 
-**ReportMaker** es una aplicación de escritorio diseñada para generar informes técnicos de reparos de manera rápida y profesional. La herramienta traduce automáticamente del español al inglés y corrige errores gramaticales, facilitando la documentación de incidencias técnicas.
+**ReportMaker** es una aplicación de escritorio moderna diseñada para generar informes técnicos de reparos de manera rápida y profesional. La herramienta traduce automáticamente del español al inglés y corrige errores gramaticales, facilitando la documentación de incidencias técnicas.
 
-### ✨ Características Principales
+### ✨ Características Principales v1.1
 
+- ✅ **Diseño moderno estilo Windows 11** con bordes redondeados
 - ✅ **Traducción automática** español → inglés
 - ✅ **Corrección gramatical** automática
 - ✅ **3 tipos de informes**: OPENED, REOPENED, VERIFIED
 - ✅ **Numeración automática** en procedimientos
 - ✅ **Exportación a Word** (.docx)
-- ✅ **Interfaz moderna** y fácil de usar
+- ✅ **Interfaz moderna** con colores Windows 11
 - ✅ **Vista previa en tiempo real**
-- ✅ **Scrollbars funcionales** en todos los campos
+- ✅ **Scrollbars funcionales** mejorados
+- ✅ **Navegación con Tab** entre campos
+- ✅ **Deshacer/Rehacer** con Ctrl+Z / Ctrl+Y
+- ✅ **Atajos de teclado** modernos
+
+---
+
+## 🆕 Novedades en v1.1
+
+### 🎨 Diseño Moderno Windows 11
+- **Bordes redondeados** en todos los elementos (6px radius)
+- **Colores oficiales** de Windows 11 (#0078D4, #107C10)
+- **Sombras sutiles** para mejor profundidad visual
+- **Botones personalizados** con efectos hover
+- **Transiciones suaves** al interactuar
+
+### ⌨️ Navegación Mejorada
+- **Tab**: Navega entre campos en orden lógico
+- **Ctrl+Z**: Deshacer cambios en campos de texto
+- **Ctrl+Y**: Rehacer cambios
+- **Ctrl+S**: Generar informe (atajo rápido)
+- **Ctrl+N**: Limpiar formulario
+- **Ctrl+E**: Exportar a Word
+- **Ctrl+C**: Copiar vista previa
+
+### 🖱️ Interacción Intuitiva
+- **Efectos hover** en todos los botones
+- **Cursor hand** al pasar sobre elementos clicables
+- **Scrollbars estilo Windows 11** más elegantes
+- **Focus visual** mejorado en campos activos
 
 ---
 
@@ -71,6 +101,10 @@ Breve resumen del problema en una línea.
 El router pierde conexión cada 2 horas
 ```
 
+**Navegación:**
+- Presiona **Tab** para ir al siguiente campo
+- Usa **Ctrl+Z** para deshacer
+
 #### 🖥️ **Equipment Information**
 Información técnica del equipo. Puedes escribir en español, se traducirá automáticamente.
 
@@ -84,6 +118,11 @@ Versión Software: 2.4.1
 Versión Firmware: FW_2024_03
 Código de País: ES
 ```
+
+**Características:**
+- ✅ Scrollbar funcional estilo Windows 11
+- ✅ Deshacer/Rehacer con Ctrl+Z/Y
+- ✅ Fuente monoespaciada (Consolas) para mejor legibilidad
 
 #### 📄 **Descripción**
 Describe el problema detalladamente. Escribe en español, se traducirá automáticamente.
@@ -102,7 +141,7 @@ Lista los pasos realizados. La numeración es automática.
 1. Escribe el primer paso después del "1. "
 2. Presiona **Enter** y se agregará automáticamente "2. "
 3. Continúa escribiendo cada paso
-4. Usa el botón "Reiniciar Numeración" si necesitas empezar de nuevo
+4. Usa el botón "🔄 Reiniciar" si necesitas empezar de nuevo
 
 **Ejemplo:**
 ```
@@ -131,20 +170,40 @@ screenshot_error.png, router_logs.txt, network_analysis.xlsx
 
 ### 3️⃣ Generar el Informe
 
-1. Haz clic en **"✨ Generar Informe"**
-2. La aplicación:
-   - ✅ Traduce todo al inglés
-   - ✅ Corrige errores gramaticales
-   - ✅ Formatea el texto correctamente
-   - ✅ Muestra el resultado en la vista previa
+**Opción 1: Botón**
+- Haz clic en **"✨ Generar"**
+
+**Opción 2: Atajo de teclado**
+- Presiona **Ctrl+S**
+
+La aplicación:
+- ✅ Traduce todo al inglés
+- ✅ Corrige errores gramaticales
+- ✅ Formatea el texto correctamente
+- ✅ Muestra el resultado en la vista previa
 
 ### 4️⃣ Usar el Informe Generado
 
 Tienes 3 opciones:
 
-- **📋 Copiar**: Copia el informe al portapapeles para pegarlo donde necesites
-- **📄 Exportar Word**: Guarda el informe como documento .docx con formato profesional
-- **🗑️ Limpiar**: Borra la vista previa (no afecta el formulario)
+- **📋 Copiar** (o Ctrl+C): Copia el informe al portapapeles
+- **📄 Exportar** (o Ctrl+E): Guarda como documento .docx
+- **🗑️ Limpiar**: Borra la vista previa
+
+---
+
+## ⌨️ Atajos de Teclado
+
+| Atajo | Acción |
+|-------|--------|
+| **Tab** | Navegar al siguiente campo |
+| **Ctrl+Z** | Deshacer cambios |
+| **Ctrl+Y** | Rehacer cambios |
+| **Ctrl+S** | Generar informe |
+| **Ctrl+N** | Limpiar formulario (nuevo) |
+| **Ctrl+E** | Exportar a Word |
+| **Ctrl+C** | Copiar vista previa (cuando está enfocada) |
+| **Enter** | Auto-numerar (en Procedimiento) |
 
 ---
 
@@ -184,35 +243,6 @@ The equipment presents random disconnections
 Stable connection without interruptions
 ```
 
-### Ejemplo 2: REOPENED
-
-**Salida:**
-```
-REOPENED
-The problem continues, REOPENED in this version.
-
-[Equipment information]:
-...
-
-[Fault]:
-...
-
-[Procedure]:
-...
-```
-
-### Ejemplo 3: VERIFIED
-
-**Salida:**
-```
-[Equipment information]:
-...
-
-The problem is VERIFIED in this version
-
-(Descripción del problema)
-```
-
 ---
 
 ## ⚙️ Funciones Detalladas
@@ -238,22 +268,19 @@ The problem is VERIFIED in this version
   - Puntuación
   - Estilo
 
-### 📊 Equipment Information
+### 🎨 Diseño Windows 11
 
-**Traducciones automáticas de campos comunes:**
+**Colores:**
+- Primary: `#0078D4` (Azul Windows 11)
+- Success: `#107C10` (Verde Windows 11)
+- Background: `#F3F3F3` (Gris claro)
+- Text: `#1A1A1A` (Negro suave)
 
-| Español | Inglés |
-|---------|--------|
-| Nombre del equipo | Equipment name |
-| Modelo | Model |
-| Número de serie | Serial Number |
-| Versión hardware | Hardware Version |
-| Versión software | Software Version |
-| Versión firmware | Firmware Version |
-| Código de país | Country Code |
-| Product ID | Product ID |
-
-Si escribes otros campos, se traducirán automáticamente.
+**Elementos:**
+- Bordes redondeados: 6px
+- Sombras sutiles para profundidad
+- Efectos hover suaves
+- Scrollbars estilo moderno
 
 ### 🔢 Numeración Automática
 
@@ -263,36 +290,7 @@ El campo **Procedimiento** tiene numeración inteligente:
 - ✅ La numeración se mantiene consistente
 - ✅ Puedes editar cualquier línea sin romper la numeración
 - ✅ Al generar, se renumeran automáticamente los pasos válidos
-
-**Botón "Reiniciar Numeración":**
-- Borra todo el contenido
-- Reinicia el contador a "1."
-- Útil para empezar de cero
-
-### 📄 Exportación a Word
-
-El archivo Word generado incluye:
-
-- ✅ **Formato profesional** con estilos
-- ✅ **Títulos en negrita** para secciones
-- ✅ **Colores especiales**:
-  - REOPENED: Rojo
-  - VERIFIED: Verde
-- ✅ **Nombre automático**: `Repair_TIPO_YYYYMMDD_HHMMSS.docx`
-
----
-
-## 🎨 Interfaz de Usuario
-
-### Panel Izquierdo (Formulario)
-- **Scrollable**: Desplázate con la rueda del mouse
-- **Campos expandibles**: Todos los campos de texto tienen scroll
-- **Campos dinámicos**: Se muestran/ocultan según el tipo de reparo
-
-### Panel Derecho (Vista Previa)
-- **Actualización en vivo**: Muestra el resultado al generar
-- **Scrollable**: Desplázate para ver informes largos
-- **Copyable**: Copia directamente desde aquí
+- ✅ Deshacer con **Ctrl+Z** funciona perfectamente
 
 ---
 
@@ -304,19 +302,15 @@ El archivo Word generado incluye:
 ### ❌ Error: "Equipment Information requerido"
 **Solución**: Todos los tipos de reparo necesitan información del equipo.
 
-### ❌ Error: "Procedimiento obligatorio para OPENED"
-**Solución**: Escribe al menos un paso en el procedimiento.
+### ❌ Los atajos de teclado no funcionan
+**Solución**: Asegúrate de que la ventana de la aplicación esté enfocada (activa).
+
+### ⚠️ Ctrl+Z no funciona en un campo
+**Solución**: Haz clic en el campo primero para darle foco, luego usa Ctrl+Z.
 
 ### ⚠️ La traducción no funciona
 **Posible causa**: Sin conexión a internet
 **Solución**: Verifica tu conexión. La traducción requiere internet.
-
-### ⚠️ El texto no se corrige gramaticalmente
-**Posible causa**: LanguageTool no se inicializó
-**Solución**: El texto se traducirá pero sin corrección. Funcionalidad opcional.
-
-### ⚠️ No puedo ver todo el texto
-**Solución**: Usa las scrollbars en cada campo. Todos los campos de texto tienen scroll.
 
 ---
 
@@ -324,39 +318,48 @@ El archivo Word generado incluye:
 
 ### ✅ Mejores Prácticas
 
-1. **Escribe en español**: La aplicación traduce automáticamente
-2. **Sé específico**: Incluye todos los detalles técnicos relevantes
-3. **Usa el procedimiento numerado**: Facilita el seguimiento
-4. **Revisa la vista previa**: Verifica el resultado antes de copiar/exportar
-5. **Guarda regularmente**: Usa "Exportar Word" para guardar copias
+1. **Usa Tab para navegar**: Más rápido que el mouse
+2. **Aprovecha Ctrl+S**: Genera sin tocar el botón
+3. **Ctrl+Z es tu amigo**: No tengas miedo de experimentar
+4. **Escribe en español**: La app traduce por ti
+5. **Revisa la vista previa**: Siempre antes de exportar
 
-### 📝 Formato de Equipment
+### 📝 Navegación Eficiente
 
-**Formato recomendado:**
-```
-Campo: Valor
-Campo: Valor
-...
-```
+**Flujo recomendado con teclado:**
+1. Selecciona tipo con mouse (una vez)
+2. **Tab** → Summary → escribe
+3. **Tab** → Equipment → escribe
+4. **Tab** → Descripción → escribe
+5. **Tab** → Procedimiento → escribe pasos
+6. **Tab** → Expected → escribe
+7. **Tab** → Attachments → escribe
+8. **Ctrl+S** → Generar
+9. **Ctrl+E** → Exportar
 
-**Evita:**
-- Mezclar formatos
-- Líneas sin estructura
-- Información duplicada
+---
 
-### 🎯 Descripción Efectiva
+## 🎨 Interfaz de Usuario
 
-**Incluye:**
-- ✅ Qué está fallando
-- ✅ Cuándo ocurre
-- ✅ Frecuencia del problema
-- ✅ Impacto en usuarios
-- ✅ Condiciones específicas
+### Panel Izquierdo (Formulario)
+- **Header azul** con título y versión
+- **Sección expandible** con scroll suave
+- **Campos con bordes redondeados** (6px)
+- **Botones con hover effects**
+- **Navegación con Tab** optimizada
 
-**Evita:**
-- ❌ Descripciones vagas
-- ❌ Información irrelevante
-- ❌ Opiniones personales
+### Panel Derecho (Vista Previa)
+- **Header verde** distintivo
+- **Área de texto** con fuente monoespaciada
+- **Botones de acción** en la parte inferior
+- **Scrollbar moderna** estilo Windows 11
+
+### Elementos Modernos
+- ✅ Bordes redondeados en todo
+- ✅ Sombras sutiles
+- ✅ Colores Windows 11 oficiales
+- ✅ Iconos emoji integrados
+- ✅ Efectos hover en botones
 
 ---
 
@@ -365,47 +368,50 @@ Campo: Valor
 ```
 1. Detectar problema
    ↓
-2. Seleccionar tipo (OPENED/REOPENED/VERIFIED)
+2. Abrir ReportMaker
    ↓
-3. Completar información del equipo
+3. Seleccionar tipo (OPENED/REOPENED/VERIFIED)
    ↓
-4. Describir el problema
+4. Usar Tab para navegar por campos
    ↓
-5. Documentar procedimiento (si aplica)
+5. Escribir información (español OK)
    ↓
-6. Generar informe
+6. Ctrl+S para generar
    ↓
 7. Revisar vista previa
    ↓
-8. Copiar o Exportar
+8. Ctrl+E para exportar o Ctrl+C para copiar
    ↓
-9. Limpiar formulario para siguiente caso
+9. Ctrl+N para limpiar y siguiente caso
 ```
 
 ---
 
 ## 🔐 Privacidad y Seguridad
 
-- ✅ **Sin almacenamiento**: No guarda información localmente
+- ✅ **Sin almacenamiento local**: No guarda información
 - ✅ **Traducción en línea**: Usa Google Translate API (requiere internet)
 - ✅ **Sin telemetría**: No envía datos de uso
 - ⚠️ **Nota**: El texto se envía a servicios externos para traducción
 
 ---
 
-## 📞 Soporte
-
-Si encuentras problemas o tienes sugerencias:
-
-1. Verifica esta documentación primero
-2. Revisa la sección "Solución de Problemas"
-3. Contacta al equipo de desarrollo
-
----
-
 ## 📝 Notas de Versión
 
-### v1.0 (Actual)
+### v1.1 (Actual) - Diseño Moderno
+- ✨ **NUEVO**: Diseño completo estilo Windows 11
+- ✨ **NUEVO**: Bordes redondeados (6px) en todos los elementos
+- ✨ **NUEVO**: Navegación con Tab entre campos
+- ✨ **NUEVO**: Deshacer/Rehacer con Ctrl+Z/Y
+- ✨ **NUEVO**: Atajos de teclado (Ctrl+S, Ctrl+N, Ctrl+E)
+- ✨ **NUEVO**: Botones personalizados con efectos hover
+- ✨ **NUEVO**: Scrollbars estilo Windows 11
+- ✨ **NUEVO**: Colores oficiales de Windows 11
+- ✨ **NUEVO**: Sombras sutiles para profundidad
+- 🔧 **MEJORADO**: Interfaz más espaciosa y limpia
+- 🔧 **MEJORADO**: Mejor organización visual
+
+### v1.0
 - ✅ Scrollbars funcionales en todos los campos
 - ✅ Interfaz mejorada con iconos
 - ✅ Traducción automática
@@ -422,4 +428,12 @@ Este software es de uso interno. Todos los derechos reservados.
 
 ---
 
-**¡Gracias por usar ReportMaker! 🚀**
+## 🙏 Agradecimientos
+
+Desarrollado con atención al detalle y diseño moderno para mejorar la productividad del equipo.
+
+---
+
+**¡Gracias por usar ReportMaker v1.1! 🚀**
+
+*Diseñado con 💙 siguiendo los estándares de Windows 11*

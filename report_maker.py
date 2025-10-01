@@ -87,13 +87,89 @@ def translate_equipment_info(text):
     return '\n'.join(result)
 
 class MaterialColors:
-    PRIMARY = '#1976D2'
-    SUCCESS = '#4CAF50'
-    ERROR = '#F44336'
-    BG_LIGHT = '#E8E8E8'
+    # Colores estilo Windows 11
+    PRIMARY = '#0078D4'  # Azul Windows 11
+    PRIMARY_HOVER = '#106EBE'
+    SUCCESS = '#107C10'  # Verde Windows 11
+    SUCCESS_HOVER = '#0E6B0E'
+    ERROR = '#D13438'
+    BG_LIGHT = '#F3F3F3'  # Gris claro Win11
     BG_CARD = '#FFFFFF'
-    TEXT_PRIMARY = '#212121'
-    TEXT_SECONDARY = '#757575'
+    TEXT_PRIMARY = '#1A1A1A'
+    TEXT_SECONDARY = '#616161'
+    BORDER_LIGHT = '#E0E0E0'
+    SHADOW = '#D0D0D0'  # Sombra sutil (sin alpha channel)
+
+class RoundedButton(tk.Canvas):
+    """Botón redondeado estilo Windows 11"""
+    def __init__(self, parent, text, command, bg_color, fg_color='white', 
+                 hover_color=None, font=('Segoe UI', 11, 'bold'), 
+                 width=120, height=40, corner_radius=6):
+        super().__init__(parent, width=width, height=height, 
+                        bg=parent['bg'], highlightthickness=0)
+        
+        self.command = command
+        self.bg_color = bg_color
+        self.fg_color = fg_color
+        self.hover_color = hover_color or bg_color
+        self.font = font
+        self.corner_radius = corner_radius
+        self.width = width
+        self.height = height
+        self.text = text
+        
+        self.draw_button(self.bg_color)
+        
+        # Eventos
+        self.bind('<Button-1>', self.on_click)
+        self.bind('<Enter>', self.on_enter)
+        self.bind('<Leave>', self.on_leave)
+        
+    def draw_button(self, color):
+        self.delete('all')
+        # Rectángulo redondeado
+        self.create_rounded_rect(2, 2, self.width-2, self.height-2, 
+                                self.corner_radius, fill=color, outline='')
+        # Texto
+        self.create_text(self.width/2, self.height/2, text=self.text,
+                        fill=self.fg_color, font=self.font)
+    
+    def create_rounded_rect(self, x1, y1, x2, y2, radius, **kwargs):
+        points = [
+            x1+radius, y1,
+            x1+radius, y1,
+            x2-radius, y1,
+            x2-radius, y1,
+            x2, y1,
+            x2, y1+radius,
+            x2, y1+radius,
+            x2, y2-radius,
+            x2, y2-radius,
+            x2, y2,
+            x2-radius, y2,
+            x2-radius, y2,
+            x1+radius, y2,
+            x1+radius, y2,
+            x1, y2,
+            x1, y2-radius,
+            x1, y2-radius,
+            x1, y1+radius,
+            x1, y1+radius,
+            x1, y1
+        ]
+        return self.create_polygon(points, smooth=True, **kwargs)
+    
+    def on_click(self, event):
+        if self.command:
+            self.command()
+    
+    def on_enter(self, event):
+        self.draw_button(self.hover_color)
+        self.configure(cursor='hand2')
+    
+    def on_leave(self, event):
+        self.draw_button(self.bg_color)
+        self.configure(cursor='')
 
 class AutoNumberedText(scrolledtext.ScrolledText):
     def __init__(self, master=None, **kwargs):
@@ -126,217 +202,399 @@ class AutoNumberedText(scrolledtext.ScrolledText):
 class RepairReportGenerator:
     def __init__(self, root):
         self.root = root
-        self.root.title("ReportMaker v1.0")
-        self.root.geometry("1400x800")
+        self.root.title("ReportMaker v1.1")
+        self.root.geometry("1450x850")
         self.root.configure(bg=MaterialColors.BG_LIGHT)
         self.root.minsize(1200, 700)
         
-        # Guardar referencias a widgets que se ocultan/muestran
+        # Configurar estilo Windows 11
+        self.setup_modern_style()
+        
+        # Referencias a widgets
         self.summary_widgets = []
         self.procedure_widgets = []
         self.expected_widgets = []
         
         self.create_widgets()
+        
+    def setup_modern_style(self):
+        """Configura estilos modernos Windows 11"""
+        style = ttk.Style()
+        style.theme_use('clam')
+        
+        # Estilo para Combobox
+        style.configure('Modern.TCombobox',
+                       fieldbackground='white',
+                       background=MaterialColors.PRIMARY,
+                       foreground=MaterialColors.TEXT_PRIMARY,
+                       borderwidth=1,
+                       relief='flat',
+                       arrowsize=15)
+        
+        style.map('Modern.TCombobox',
+                 fieldbackground=[('readonly', 'white')],
+                 selectbackground=[('readonly', MaterialColors.PRIMARY)],
+                 selectforeground=[('readonly', 'white')])
+        
+        # Estilo para Scrollbar
+        style.configure('Modern.Vertical.TScrollbar',
+                       background=MaterialColors.BG_LIGHT,
+                       troughcolor='white',
+                       borderwidth=0,
+                       arrowsize=14)
+        
+        style.map('Modern.Vertical.TScrollbar',
+                 background=[('active', MaterialColors.PRIMARY)])
+    
+    def create_rounded_frame(self, parent, **kwargs):
+        """Crea un frame con bordes redondeados estilo Windows 11"""
+        frame = tk.Frame(parent, **kwargs)
+        frame.configure(highlightbackground=MaterialColors.BORDER_LIGHT,
+                       highlightthickness=1,
+                       relief=tk.FLAT)
+        return frame
     
     def create_widgets(self):
-        # Header
-        header = tk.Frame(self.root, bg=MaterialColors.PRIMARY, height=80)
+        # Header moderno con gradiente simulado
+        header = tk.Frame(self.root, bg=MaterialColors.PRIMARY, height=70)
         header.pack(fill=tk.X, side=tk.TOP)
         header.pack_propagate(False)
         
-        title_frame = tk.Frame(header, bg=MaterialColors.PRIMARY)
-        title_frame.pack(pady=15)
-        tk.Label(title_frame, text="ReportMaker", font=('Segoe UI', 22, 'bold'),
-                bg=MaterialColors.PRIMARY, fg='white').pack(side=tk.LEFT)
+        # Agregar sombra sutil
+        shadow = tk.Frame(self.root, bg=MaterialColors.SHADOW, height=3)
+        shadow.pack(fill=tk.X, side=tk.TOP)
         
-        # Contenedor principal
+        title_frame = tk.Frame(header, bg=MaterialColors.PRIMARY)
+        title_frame.pack(pady=18)
+        
+        tk.Label(title_frame, text="🔧 ReportMaker", font=('Segoe UI', 20, 'bold'),
+                bg=MaterialColors.PRIMARY, fg='white').pack(side=tk.LEFT)
+        tk.Label(title_frame, text=" v1.1", font=('Segoe UI', 11),
+                bg=MaterialColors.PRIMARY, fg='#CCCCCC').pack(side=tk.LEFT, padx=(5, 0))
+        
+        # Contenedor principal con padding
         main = tk.Frame(self.root, bg=MaterialColors.BG_LIGHT)
-        main.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        main.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
         
         # COLUMNA IZQUIERDA
         left = tk.Frame(main, bg=MaterialColors.BG_LIGHT)
-        left.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 5))
+        left.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 8))
         
+        # Canvas con scrollbar moderno
         canvas = tk.Canvas(left, bg=MaterialColors.BG_LIGHT, highlightthickness=0)
-        scrollbar = ttk.Scrollbar(left, orient="vertical", command=canvas.yview)
+        scrollbar = ttk.Scrollbar(left, orient="vertical", command=canvas.yview, 
+                                 style='Modern.Vertical.TScrollbar')
         self.form_frame = tk.Frame(canvas, bg=MaterialColors.BG_LIGHT)
         
         self.form_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-        canvas.create_window((0, 0), window=self.form_frame, anchor="nw", width=650)
+        canvas.create_window((0, 0), window=self.form_frame, anchor="nw", width=680)
         canvas.configure(yscrollcommand=scrollbar.set)
         
         row_counter = 0
         
-        # Tipo de Reparo
-        self.add_section("Tipo de Reparo", row_counter)
+        # Tipo de Reparo con diseño moderno
+        self.add_section("Tipo de Reparo", row_counter, icon="📋")
         row_counter += 1
-        self.report_type = ttk.Combobox(self.form_frame, values=["OPENED", "REOPENED", "VERIFIED"],
-                                       state='readonly', font=('Segoe UI', 11), width=30)
-        self.report_type.grid(row=row_counter, column=0, sticky='w', padx=30, pady=(0, 20))
+        
+        combo_frame = tk.Frame(self.form_frame, bg=MaterialColors.BG_LIGHT)
+        combo_frame.grid(row=row_counter, column=0, sticky='w', padx=30, pady=(0, 25))
+        
+        self.report_type = ttk.Combobox(combo_frame, 
+                                       values=["OPENED", "REOPENED", "VERIFIED"],
+                                       state='readonly', 
+                                       font=('Segoe UI', 11), 
+                                       width=28,
+                                       style='Modern.TCombobox')
+        self.report_type.pack()
         self.report_type.current(0)
         self.report_type.bind('<<ComboboxSelected>>', self.on_type_change)
         row_counter += 1
         
         # Summary (solo OPENED)
-        summary_card = self.add_section("Summary", row_counter)
+        summary_card = self.add_section("Summary", row_counter, icon="📝")
         self.summary_widgets.append(summary_card)
         row_counter += 1
-        self.summary = tk.Entry(self.form_frame, font=('Segoe UI', 11), bg='white', relief=tk.FLAT, borderwidth=2)
-        self.summary.grid(row=row_counter, column=0, sticky='ew', padx=30, pady=(0, 20))
-        self.summary_widgets.append(self.summary)
+        
+        summary_container = self.create_rounded_frame(self.form_frame, bg='white')
+        summary_container.grid(row=row_counter, column=0, sticky='ew', padx=30, pady=(0, 25))
+        self.summary = tk.Entry(summary_container, font=('Segoe UI', 11), bg='white', 
+                               relief=tk.FLAT, borderwidth=0)
+        self.summary.pack(fill=tk.X, padx=12, pady=10)
+        self.summary_widgets.append(summary_container)
         row_counter += 1
         
         # Equipment Information
-        self.add_section("Equipment Information", row_counter)
+        self.add_section("Equipment Information", row_counter, icon="🖥️")
         row_counter += 1
         
-        # Frame con scrollbar personalizado
-        eq_frame = tk.Frame(self.form_frame, bg='white', relief=tk.FLAT, borderwidth=2)
-        eq_frame.grid(row=row_counter, column=0, sticky='ew', padx=30, pady=(0, 20))
+        eq_frame = self.create_rounded_frame(self.form_frame, bg='white')
+        eq_frame.grid(row=row_counter, column=0, sticky='ew', padx=30, pady=(0, 25))
         
         self.equipment = tk.Text(eq_frame, font=('Consolas', 10), bg='white', height=8,
                                 relief=tk.FLAT, borderwidth=0, wrap=tk.WORD)
-        eq_scroll = ttk.Scrollbar(eq_frame, orient="vertical", command=self.equipment.yview)
+        eq_scroll = ttk.Scrollbar(eq_frame, orient="vertical", command=self.equipment.yview,
+                                 style='Modern.Vertical.TScrollbar')
         self.equipment.configure(yscrollcommand=eq_scroll.set)
         
-        self.equipment.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
-        eq_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.equipment.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10)
+        eq_scroll.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 5), pady=10)
         row_counter += 1
         
         # Descripción
-        self.add_section("Descripción", row_counter)
+        self.add_section("Descripción", row_counter, icon="📄")
         row_counter += 1
         
-        desc_frame = tk.Frame(self.form_frame, bg='white', relief=tk.FLAT, borderwidth=2)
-        desc_frame.grid(row=row_counter, column=0, sticky='ew', padx=30, pady=(0, 20))
+        desc_frame = self.create_rounded_frame(self.form_frame, bg='white')
+        desc_frame.grid(row=row_counter, column=0, sticky='ew', padx=30, pady=(0, 25))
         
         self.description = tk.Text(desc_frame, font=('Segoe UI', 10), bg='white', height=8,
                                   relief=tk.FLAT, borderwidth=0, wrap=tk.WORD)
-        desc_scroll = ttk.Scrollbar(desc_frame, orient="vertical", command=self.description.yview)
+        desc_scroll = ttk.Scrollbar(desc_frame, orient="vertical", command=self.description.yview,
+                                   style='Modern.Vertical.TScrollbar')
         self.description.configure(yscrollcommand=desc_scroll.set)
         
-        self.description.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
-        desc_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.description.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10)
+        desc_scroll.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 5), pady=10)
         row_counter += 1
         
         # Procedimiento (OPENED y REOPENED)
-        proc_card = self.add_section("Procedimiento", row_counter)
+        proc_card = self.add_section("Procedimiento", row_counter, icon="🔧")
         self.procedure_widgets.append(proc_card)
         row_counter += 1
         
-        proc_frame = tk.Frame(self.form_frame, bg='white', relief=tk.FLAT, borderwidth=2)
-        proc_frame.grid(row=row_counter, column=0, sticky='ew', padx=30, pady=(0, 10))
+        proc_frame = self.create_rounded_frame(self.form_frame, bg='white')
+        proc_frame.grid(row=row_counter, column=0, sticky='ew', padx=30, pady=(0, 15))
         
         self.procedure = AutoNumberedText(proc_frame, font=('Segoe UI', 10), bg='white', height=6,
                                          relief=tk.FLAT, borderwidth=0, wrap=tk.WORD)
-        self.procedure.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
-        # AutoNumberedText ya tiene scrollbar integrado
+        self.procedure.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
         self.procedure.insert('1.0', '1. ')
         self.procedure_widgets.append(proc_frame)
         row_counter += 1
         
-        proc_btn = tk.Button(self.form_frame, text="Reiniciar Numeración", command=self.reset_proc,
-                 bg=MaterialColors.TEXT_SECONDARY, fg='white', font=('Segoe UI', 9),
-                 relief=tk.FLAT, cursor='hand2', padx=15, pady=5)
-        proc_btn.grid(row=row_counter, column=0, sticky='w', padx=30, pady=(0, 20))
-        self.procedure_widgets.append(proc_btn)
+        # Botón reiniciar con diseño moderno
+        btn_reset_container = tk.Frame(self.form_frame, bg=MaterialColors.BG_LIGHT)
+        btn_reset_container.grid(row=row_counter, column=0, sticky='w', padx=30, pady=(0, 25))
+        
+        proc_btn = RoundedButton(btn_reset_container, text="🔄 Reiniciar", 
+                                command=self.reset_proc,
+                                bg_color=MaterialColors.TEXT_SECONDARY,
+                                hover_color='#525252',
+                                width=120, height=36, corner_radius=6)
+        proc_btn.pack()
+        self.procedure_widgets.append(btn_reset_container)
         row_counter += 1
         
         # Resultado Esperado (solo OPENED)
-        exp_card = self.add_section("Resultado Esperado", row_counter)
+        exp_card = self.add_section("Resultado Esperado", row_counter, icon="✅")
         self.expected_widgets.append(exp_card)
         row_counter += 1
         
-        exp_frame = tk.Frame(self.form_frame, bg='white', relief=tk.FLAT, borderwidth=2)
-        exp_frame.grid(row=row_counter, column=0, sticky='ew', padx=30, pady=(0, 20))
+        exp_frame = self.create_rounded_frame(self.form_frame, bg='white')
+        exp_frame.grid(row=row_counter, column=0, sticky='ew', padx=30, pady=(0, 25))
         
         self.expected = tk.Text(exp_frame, font=('Segoe UI', 10), bg='white', height=4,
                                relief=tk.FLAT, borderwidth=0, wrap=tk.WORD)
-        exp_scroll = ttk.Scrollbar(exp_frame, orient="vertical", command=self.expected.yview)
+        exp_scroll = ttk.Scrollbar(exp_frame, orient="vertical", command=self.expected.yview,
+                                  style='Modern.Vertical.TScrollbar')
         self.expected.configure(yscrollcommand=exp_scroll.set)
         
-        self.expected.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
-        exp_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.expected.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10)
+        exp_scroll.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 5), pady=10)
         self.expected_widgets.append(exp_frame)
         row_counter += 1
         
         # Adjuntos
-        self.add_section("Attachments", row_counter)
-        row_counter += 1
-        self.attachments = tk.Entry(self.form_frame, font=('Segoe UI', 11), bg='white', relief=tk.FLAT, borderwidth=2)
-        self.attachments.grid(row=row_counter, column=0, sticky='ew', padx=30, pady=(0, 20))
+        self.add_section("Attachments", row_counter, icon="📎")
         row_counter += 1
         
-        # Botones
+        att_container = self.create_rounded_frame(self.form_frame, bg='white')
+        att_container.grid(row=row_counter, column=0, sticky='ew', padx=30, pady=(0, 25))
+        self.attachments = tk.Entry(att_container, font=('Segoe UI', 11), bg='white', 
+                                    relief=tk.FLAT, borderwidth=0)
+        self.attachments.pack(fill=tk.X, padx=12, pady=10)
+        row_counter += 1
+        
+        # Botones principales con diseño moderno
         btn_frame = tk.Frame(self.form_frame, bg=MaterialColors.BG_LIGHT)
-        btn_frame.grid(row=row_counter, column=0, pady=30)
+        btn_frame.grid(row=row_counter, column=0, pady=35)
         
-        tk.Button(btn_frame, text="🗑️ Limpiar Todo", command=self.clear_form,
-                 bg=MaterialColors.TEXT_SECONDARY, fg='white', font=('Segoe UI', 11, 'bold'),
-                 relief=tk.FLAT, cursor='hand2', padx=20, pady=12).pack(side=tk.LEFT, padx=5)
+        btn_clear = RoundedButton(btn_frame, text="🗑️ Limpiar", 
+                                 command=self.clear_form,
+                                 bg_color=MaterialColors.TEXT_SECONDARY,
+                                 hover_color='#525252',
+                                 width=140, height=45)
+        btn_clear.pack(side=tk.LEFT, padx=8)
         
-        tk.Button(btn_frame, text="✨ Generar Informe", command=self.generate,
-                 bg=MaterialColors.SUCCESS, fg='white', font=('Segoe UI', 12, 'bold'),
-                 relief=tk.FLAT, cursor='hand2', padx=30, pady=15).pack(side=tk.LEFT, padx=5)
+        btn_generate = RoundedButton(btn_frame, text="✨ Generar", 
+                                    command=self.generate,
+                                    bg_color=MaterialColors.SUCCESS,
+                                    hover_color=MaterialColors.SUCCESS_HOVER,
+                                    font=('Segoe UI', 12, 'bold'),
+                                    width=180, height=48)
+        btn_generate.pack(side=tk.LEFT, padx=8)
         
         self.form_frame.columnconfigure(0, weight=1)
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
         
-        # Scroll con mouse
-        def on_mouse(e):
-            canvas.yview_scroll(int(-1*(e.delta/120)), "units")
-        canvas.bind('<Enter>', lambda e: canvas.bind_all("<MouseWheel>", on_mouse))
-        canvas.bind('<Leave>', lambda e: canvas.unbind_all("<MouseWheel>"))
+        # Scroll mejorado con detección de widgets
+        def on_mouse_wheel(event):
+            # Verificar si el cursor está sobre un widget de texto
+            widget = event.widget
+            
+            # Si es un widget Text o ScrolledText, dejar que maneje su propio scroll
+            if isinstance(widget, (tk.Text, scrolledtext.ScrolledText)):
+                # Obtener posición actual del scroll
+                try:
+                    yview = widget.yview()
+                    # Si está en el tope y scrollea hacia arriba, permitir scroll del canvas
+                    if event.delta > 0 and yview[0] <= 0.0:
+                        canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+                        return "break"
+                    # Si está en el fondo y scrollea hacia abajo, permitir scroll del canvas
+                    elif event.delta < 0 and yview[1] >= 1.0:
+                        canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+                        return "break"
+                    # En cualquier otro caso, dejar que el widget maneje el scroll
+                    return
+                except:
+                    pass
+            else:
+                # Si no es un widget de texto, hacer scroll del canvas
+                canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+                return "break"
+        
+        # Vincular scroll a todo el formulario
+        def bind_mouse_wheel(widget):
+            widget.bind("<MouseWheel>", on_mouse_wheel)
+            for child in widget.winfo_children():
+                bind_mouse_wheel(child)
+        
+        bind_mouse_wheel(self.form_frame)
+        canvas.bind("<MouseWheel>", on_mouse_wheel)
         
         # COLUMNA DERECHA
         right = tk.Frame(main, bg=MaterialColors.BG_LIGHT)
-        right.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(5, 0))
+        right.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(8, 0))
         
-        preview_header = tk.Frame(right, bg=MaterialColors.SUCCESS, height=60)
+        # Preview con diseño moderno
+        preview_card = self.create_rounded_frame(right, bg='white')
+        preview_card.pack(fill=tk.BOTH, expand=True)
+        
+        preview_header = tk.Frame(preview_card, bg=MaterialColors.SUCCESS, height=55)
         preview_header.pack(fill=tk.X)
         preview_header.pack_propagate(False)
-        tk.Label(preview_header, text="📄 Vista Previa del Informe", font=('Segoe UI', 16, 'bold'),
-                bg=MaterialColors.SUCCESS, fg='white').pack(pady=15)
         
-        preview_container = tk.Frame(right, bg='white', relief=tk.SOLID, borderwidth=2)
-        preview_container.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
+        tk.Label(preview_header, text="📄 Vista Previa", font=('Segoe UI', 15, 'bold'),
+                bg=MaterialColors.SUCCESS, fg='white').pack(pady=12)
+        
+        preview_container = tk.Frame(preview_card, bg='white')
+        preview_container.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
         
         self.preview = scrolledtext.ScrolledText(preview_container, font=('Consolas', 10),
-            bg='white', fg=MaterialColors.TEXT_PRIMARY, wrap=tk.WORD, padx=15, pady=15)
+            bg='white', fg=MaterialColors.TEXT_PRIMARY, wrap=tk.WORD, 
+            padx=18, pady=18, relief=tk.FLAT)
         self.preview.pack(fill=tk.BOTH, expand=True)
         self.preview.insert('1.0', "\n\n    📋 Vista Previa del Informe\n\n    "
                            "✏️ Completa el formulario y genera\n\n    "
                            "🌐 Se traducirá automáticamente al inglés\n    "
                            "✅ Se corregirán errores gramaticales\n\n ")
         
-        # Botones vista previa
-        btn_preview = tk.Frame(right, bg=MaterialColors.BG_LIGHT)
-        btn_preview.pack(fill=tk.X, pady=(10, 0))
+        # Mejorar scroll del preview
+        def on_preview_scroll(event):
+            # El ScrolledText maneja su propio scroll naturalmente
+            return
         
-        tk.Button(btn_preview, text="📋 Copiar", command=self.copy_preview,
-                 bg=MaterialColors.PRIMARY, fg='white', font=('Segoe UI', 10, 'bold'),
-                 relief=tk.FLAT, cursor='hand2', padx=20, pady=10).pack(side=tk.LEFT, padx=5)
+        self.preview.bind("<MouseWheel>", on_preview_scroll)
         
-        tk.Button(btn_preview, text="📄 Exportar Word", command=self.export_word,
-                 bg=MaterialColors.SUCCESS, fg='white', font=('Segoe UI', 10, 'bold'),
-                 relief=tk.FLAT, cursor='hand2', padx=20, pady=10).pack(side=tk.LEFT, padx=5)
+        # Botones vista previa con diseño moderno
+        btn_preview = tk.Frame(preview_card, bg='white')
+        btn_preview.pack(fill=tk.X, padx=15, pady=15)
         
-        tk.Button(btn_preview, text="🗑️ Limpiar", command=self.clear_preview,
-                 bg=MaterialColors.TEXT_SECONDARY, fg='white', font=('Segoe UI', 10, 'bold'),
-                 relief=tk.FLAT, cursor='hand2', padx=20, pady=10).pack(side=tk.RIGHT)
+        btn_copy = RoundedButton(btn_preview, text="📋 Copiar", 
+                                command=self.copy_preview,
+                                bg_color=MaterialColors.PRIMARY,
+                                hover_color=MaterialColors.PRIMARY_HOVER,
+                                width=110, height=38)
+        btn_copy.pack(side=tk.LEFT, padx=5)
+        
+        btn_export = RoundedButton(btn_preview, text="📄 Exportar", 
+                                  command=self.export_word,
+                                  bg_color=MaterialColors.SUCCESS,
+                                  hover_color=MaterialColors.SUCCESS_HOVER,
+                                  width=120, height=38)
+        btn_export.pack(side=tk.LEFT, padx=5)
+        
+        btn_clear_prev = RoundedButton(btn_preview, text="🗑️ Limpiar", 
+                                      command=self.clear_preview,
+                                      bg_color=MaterialColors.TEXT_SECONDARY,
+                                      hover_color='#525252',
+                                      width=110, height=38)
+        btn_clear_prev.pack(side=tk.RIGHT, padx=5)
+        
+        # Configurar navegación con Tab
+        self.setup_tab_order()
+        
+        # Configurar atajos de teclado
+        self.setup_keyboard_shortcuts()
         
         # Inicializar visibilidad
         self.on_type_change()
     
-    def add_section(self, title, row):
-        card = tk.Frame(self.form_frame, bg=MaterialColors.BG_CARD, relief=tk.FLAT)
-        card.grid(row=row, column=0, sticky='ew', padx=20, pady=(10, 5))
-        card.configure(highlightbackground='#BDBDBD', highlightthickness=1)
-        tk.Label(card, text=title, font=('Segoe UI', 12, 'bold'),
-                bg=MaterialColors.BG_CARD, fg=MaterialColors.PRIMARY,
-                anchor='w', padx=10, pady=8).pack(fill=tk.X)
+    def setup_tab_order(self):
+        """Configura el orden de navegación con Tab"""
+        widgets_order = [
+            self.report_type,
+            self.summary,
+            self.equipment,
+            self.description,
+            self.procedure,
+            self.expected,
+            self.attachments
+        ]
+        
+        for i, widget in enumerate(widgets_order):
+            if i < len(widgets_order) - 1:
+                widget.bind('<Tab>', lambda e, next_widget=widgets_order[i+1]: 
+                           self.focus_next(next_widget))
+    
+    def focus_next(self, widget):
+        """Mueve el foco al siguiente widget"""
+        widget.focus_set()
+        return 'break'
+    
+    def setup_keyboard_shortcuts(self):
+        """Configura atajos de teclado modernos"""
+        # Ctrl+Z para deshacer en campos de texto
+        text_widgets = [self.equipment, self.description, self.procedure, self.expected]
+        for widget in text_widgets:
+            widget.bind('<Control-z>', lambda e, w=widget: w.edit_undo())
+            widget.bind('<Control-y>', lambda e, w=widget: w.edit_redo())
+        
+        # Ctrl+S para generar (guardar)
+        self.root.bind('<Control-s>', lambda e: self.generate())
+        
+        # Ctrl+N para limpiar (nuevo)
+        self.root.bind('<Control-n>', lambda e: self.clear_form())
+        
+        # Ctrl+E para exportar
+        self.root.bind('<Control-e>', lambda e: self.export_word())
+        
+        # Ctrl+C para copiar preview (solo cuando está enfocado)
+        self.preview.bind('<Control-c>', lambda e: self.copy_preview())
+    
+    def add_section(self, title, row, icon=""):
+        """Crea una sección con diseño moderno Windows 11"""
+        card = tk.Frame(self.form_frame, bg=MaterialColors.BG_LIGHT, relief=tk.FLAT)
+        card.grid(row=row, column=0, sticky='ew', padx=20, pady=(15, 8))
+        
+        label_text = f"{icon} {title}" if icon else title
+        tk.Label(card, text=label_text, font=('Segoe UI', 11, 'bold'),
+                bg=MaterialColors.BG_LIGHT, fg=MaterialColors.PRIMARY,
+                anchor='w').pack(fill=tk.X, pady=(0, 0))
+        
         return card
     
     def on_type_change(self, event=None):
