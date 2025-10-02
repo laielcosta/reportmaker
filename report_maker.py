@@ -23,8 +23,32 @@ def translate_to_english(text):
     if not text or not text.strip():
         return text
     try:
-        return translator.translate(text)
-    except:
+        # Limpiar y preparar el texto
+        text = text.strip()
+        
+        # Si el texto es corto (menos de 500 caracteres), traducir todo junto
+        if len(text) < 500:
+            return translator.translate(text)
+        
+        # Para textos largos, dividir en párrafos
+        paragraphs = text.split('\n')
+        translated_paragraphs = []
+        
+        for paragraph in paragraphs:
+            if paragraph.strip():
+                try:
+                    translated = translator.translate(paragraph.strip())
+                    translated_paragraphs.append(translated)
+                except Exception as e:
+                    # Si falla, mantener el original
+                    print(f"Error traduciendo párrafo: {e}")
+                    translated_paragraphs.append(paragraph)
+            else:
+                translated_paragraphs.append('')
+        
+        return '\n'.join(translated_paragraphs)
+    except Exception as e:
+        print(f"Error general en traducción: {e}")
         return text
 
 def correct_grammar(text):
@@ -49,11 +73,11 @@ def translate_equipment_info(text):
         return text
     
     translations = {
-        'nombre del equipo': 'Equipment name', 'nombre': 'Equipment name',
+        'nombre del equipo': 'Equipment', 'nombre': 'Equipment',
         'modelo': 'Model', 'número de serie': 'Serial Number', 'serial': 'Serial Number',
         'versión hardware': 'Hardware Version', 'versión software': 'Software Version',
         'versión firmware': 'Firmware Version', 'código de país': 'Country Code',
-        'product id': 'Product ID',
+        'product id': 'Product ID', 'estado': 'State', 'versión': 'Version',
     }
     
     lines = text.split('\n')
@@ -71,29 +95,36 @@ def translate_equipment_info(text):
                 field = parts[0].strip().lower()
                 value = parts[1].strip()
                 
+                # Traducir el nombre del campo
                 if field in translations:
-                    result.append(f"{translations[field]}: {value}")
+                    field_translated = translations[field]
                 else:
                     try:
-                        field_trans = GoogleTranslator(source='auto', target='en').translate(parts[0].strip())
-                        result.append(f"{field_trans}: {value}")
+                        field_translated = GoogleTranslator(source='auto', target='en').translate(parts[0].strip())
                     except:
-                        result.append(line)
+                        field_translated = parts[0].strip()
+                
+                result.append(f"{field_translated}: {value}")
             else:
                 result.append(line)
         else:
-            result.append(line)
+            # Si no tiene ":", traducir la línea completa
+            try:
+                line_translated = GoogleTranslator(source='auto', target='en').translate(line)
+                result.append(line_translated)
+            except:
+                result.append(line)
     
     return '\n'.join(result)
 
 class MaterialColors:
-    # Colores estilo Windows 11
-    PRIMARY = '#0078D4'  # Azul Windows 11
+    # Colores estilo 
+    PRIMARY = '#0078D4'  # Azul 
     PRIMARY_HOVER = '#106EBE'
-    SUCCESS = '#107C10'  # Verde Windows 11
+    SUCCESS = '#107C10'  # Verde
     SUCCESS_HOVER = '#0E6B0E'
     ERROR = '#D13438'
-    BG_LIGHT = '#F3F3F3'  # Gris claro Win11
+    BG_LIGHT = '#F3F3F3'  # Gris claro 
     BG_CARD = '#FFFFFF'
     TEXT_PRIMARY = '#1A1A1A'
     TEXT_SECONDARY = '#616161'
@@ -724,6 +755,7 @@ class RepairReportGenerator:
             
             # VERIFIED tiene formato especial
             if rt == "VERIFIED":
+                # Traducir Equipment primero
                 self.preview.insert(tk.END, "🌐 Traduciendo...\n")
                 self.preview.see(tk.END)
                 self.root.update()
@@ -734,10 +766,12 @@ class RepairReportGenerator:
                 self.preview.insert(tk.END, f"{eq}\n\n")
                 self.root.update()
                 
+                # Texto fijo en inglés
                 self.preview.insert(tk.END, "The problem is VERIFIED in this version\n\n")
                 self.root.update()
                 
-                self.preview.insert(tk.END, "🌐 Traduciendo...\n")
+                # Traducir la descripción completa
+                self.preview.insert(tk.END, "🌐 Traduciendo descripción...\n")
                 self.preview.see(tk.END)
                 self.root.update()
                 
