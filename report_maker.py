@@ -361,7 +361,7 @@ class RepairReportGenerator:
         eq_frame = self.create_rounded_frame(self.form_frame, bg='white')
         eq_frame.grid(row=row_counter, column=0, sticky='ew', padx=30, pady=(0, 25))
         
-        self.equipment = tk.Text(eq_frame, font=('Consolas', 10), bg='white', height=8,
+        self.equipment = tk.Text(eq_frame, font=('Segoe UI', 10), bg='white', height=8,
                                 relief=tk.FLAT, borderwidth=0, wrap=tk.WORD)
         eq_scroll = ttk.Scrollbar(eq_frame, orient="vertical", command=self.equipment.yview,
                                  style='Modern.Vertical.TScrollbar')
