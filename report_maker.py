@@ -112,7 +112,6 @@ def translate_equipment_info(text):
     return '\n'.join(result)
 
 class MaterialColors:
-    # Paleta de azules y neutros
     PRIMARY = '#0078D4'
     PRIMARY_HOVER = '#005A9E'
     PRIMARY_LIGHT = '#4A9EDE'
@@ -129,10 +128,9 @@ class MaterialColors:
     SHADOW = '#CCCCCC'
     
     SCROLLBAR_BG = '#F0F0F0'
-    SCROLLBAR_ACTIVE = '#0078D4'
+    SCROLLBAR_ACTIVE = "#868686"
 
 class ModernScrollbar(tk.Canvas):
-    """Scrollbar moderna estilo Windows 11"""
     def __init__(self, parent, orient='vertical', command=None, **kwargs):
         width = 14 if orient == 'vertical' else 200
         height = 200 if orient == 'vertical' else 14
@@ -276,7 +274,6 @@ class ModernScrollbar(tk.Canvas):
             self.draw_thumb()
 
 class RoundedButton(tk.Canvas):
-    """Botón redondeado estilo Windows 11"""
     def __init__(self, parent, text, command, bg_color, fg_color='white', 
                  hover_color=None, font=('Segoe UI', 11, 'bold'), 
                  width=120, height=40, corner_radius=6):
@@ -372,7 +369,6 @@ class RepairReportGenerator:
         self.create_widgets()
         
     def setup_modern_style(self):
-        """Configura estilos modernos Windows 11"""
         style = ttk.Style()
         style.theme_use('clam')
         
@@ -390,7 +386,6 @@ class RepairReportGenerator:
                  selectforeground=[('readonly', 'white')])
     
     def create_rounded_frame(self, parent, **kwargs):
-        """Crea un frame con bordes redondeados"""
         frame = tk.Frame(parent, **kwargs)
         frame.configure(highlightbackground=MaterialColors.BORDER_LIGHT,
                        highlightthickness=1,
@@ -398,7 +393,6 @@ class RepairReportGenerator:
         return frame
     
     def create_widgets(self):
-        # Header
         header = tk.Frame(self.root, bg=MaterialColors.PRIMARY, height=70)
         header.pack(fill=tk.X, side=tk.TOP)
         header.pack_propagate(False)
@@ -409,19 +403,17 @@ class RepairReportGenerator:
         title_frame = tk.Frame(header, bg=MaterialColors.PRIMARY)
         title_frame.pack(pady=18)
         
-        tk.Label(title_frame, text="🔧 ReportMaker", font=('Segoe UI', 20, 'bold'),
+        tk.Label(title_frame, text="ReportMaker", font=('Segoe UI', 20, 'bold'),
                 bg=MaterialColors.PRIMARY, fg='white').pack(side=tk.LEFT)
         tk.Label(title_frame, text=" v1.2.0", font=('Segoe UI', 11),
                 bg=MaterialColors.PRIMARY, fg='#CCCCCC').pack(side=tk.LEFT, padx=(5, 0))
         
-        # PanedWindow principal para ajuste de tamaño
         main_paned = tk.PanedWindow(self.root, orient=tk.HORIZONTAL, 
                                      bg=MaterialColors.BG_LIGHT, 
                                      sashwidth=8, sashrelief=tk.FLAT,
                                      bd=0)
         main_paned.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
         
-        # COLUMNA IZQUIERDA (Formulario)
         left_container = tk.Frame(main_paned, bg=MaterialColors.BG_LIGHT)
         
         canvas = tk.Canvas(left_container, bg=MaterialColors.BG_LIGHT, highlightthickness=0)
@@ -439,8 +431,7 @@ class RepairReportGenerator:
         
         row_counter = 0
         
-        # Tipo de Reparo
-        self.add_section("Tipo de Reparo", row_counter, icon="📋")
+        self.add_section("Tipo de Reparo", row_counter, icon="")
         row_counter += 1
         
         combo_frame = tk.Frame(self.form_frame, bg=MaterialColors.BG_LIGHT)
@@ -457,8 +448,7 @@ class RepairReportGenerator:
         self.report_type.bind('<<ComboboxSelected>>', self.on_type_change)
         row_counter += 1
         
-        # Summary
-        summary_card = self.add_section("Summary", row_counter, icon="📝")
+        summary_card = self.add_section("Summary", row_counter, icon="")
         self.summary_widgets.append(summary_card)
         row_counter += 1
         
@@ -470,8 +460,7 @@ class RepairReportGenerator:
         self.summary_widgets.append(summary_container)
         row_counter += 1
         
-        # Equipment Information
-        self.add_section("Equipment Information", row_counter, icon="🖥️")
+        self.add_section("Equipment Information", row_counter, icon="")
         row_counter += 1
         
         eq_frame = self.create_rounded_frame(self.form_frame, bg='white')
@@ -489,8 +478,7 @@ class RepairReportGenerator:
         eq_scroll.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 5), pady=10)
         row_counter += 1
         
-        # Descripción
-        self.add_section("Descripción", row_counter, icon="📄")
+        self.add_section("Descripcion", row_counter, icon="")
         row_counter += 1
         
         desc_frame = self.create_rounded_frame(self.form_frame, bg='white')
@@ -508,8 +496,7 @@ class RepairReportGenerator:
         desc_scroll.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 5), pady=10)
         row_counter += 1
         
-        # Procedimiento
-        proc_card = self.add_section("Procedimiento", row_counter, icon="🔧")
+        proc_card = self.add_section("Procedimiento", row_counter, icon="")
         self.procedure_widgets.append(proc_card)
         row_counter += 1
         
@@ -534,7 +521,7 @@ class RepairReportGenerator:
         btn_reset_container = tk.Frame(self.form_frame, bg=MaterialColors.BG_LIGHT)
         btn_reset_container.grid(row=row_counter, column=0, sticky='w', padx=30, pady=(0, 25))
         
-        proc_btn = RoundedButton(btn_reset_container, text="🔄 Reiniciar", 
+        proc_btn = RoundedButton(btn_reset_container, text="Reiniciar", 
                                 command=self.reset_proc,
                                 bg_color=MaterialColors.TEXT_SECONDARY,
                                 hover_color='#525252',
@@ -543,8 +530,7 @@ class RepairReportGenerator:
         self.procedure_widgets.append(btn_reset_container)
         row_counter += 1
         
-        # Resultado Esperado
-        exp_card = self.add_section("Resultado Esperado", row_counter, icon="✅")
+        exp_card = self.add_section("Resultado Esperado", row_counter, icon="")
         self.expected_widgets.append(exp_card)
         row_counter += 1
         
@@ -564,8 +550,7 @@ class RepairReportGenerator:
         self.expected_widgets.append(exp_frame)
         row_counter += 1
         
-        # Adjuntos
-        self.add_section("Attachments", row_counter, icon="📎")
+        self.add_section("Attachments", row_counter, icon="")
         row_counter += 1
         
         att_container = self.create_rounded_frame(self.form_frame, bg='white')
@@ -575,18 +560,17 @@ class RepairReportGenerator:
         self.attachments.pack(fill=tk.X, padx=12, pady=10)
         row_counter += 1
         
-        # Botones principales
         btn_frame = tk.Frame(self.form_frame, bg=MaterialColors.BG_LIGHT)
         btn_frame.grid(row=row_counter, column=0, pady=35)
         
-        btn_clear = RoundedButton(btn_frame, text="🗑️ Limpiar", 
+        btn_clear = RoundedButton(btn_frame, text="Limpiar", 
                                  command=self.clear_form,
                                  bg_color=MaterialColors.TEXT_SECONDARY,
                                  hover_color='#525252',
                                  width=140, height=45)
         btn_clear.pack(side=tk.LEFT, padx=8)
         
-        btn_generate = RoundedButton(btn_frame, text="✨ Generar", 
+        btn_generate = RoundedButton(btn_frame, text="Generar", 
                                     command=self.generate,
                                     bg_color=MaterialColors.SUCCESS,
                                     hover_color=MaterialColors.SUCCESS_HOVER,
@@ -598,27 +582,39 @@ class RepairReportGenerator:
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
         
-        # Scroll con rueda del mouse mejorado
-        def on_mouse_wheel(event):
-            # Obtener el widget bajo el cursor
+        def smart_scroll(event):
             widget = event.widget
             
-            # Si estamos sobre un widget Text, dejar que maneje su propio scroll
             if isinstance(widget, tk.Text):
-                return  # El widget Text maneja su propio scroll
-            
-            # Si estamos sobre el canvas o cualquier otro widget del formulario, scrollear el canvas
-            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+                scroll_position = widget.yview()
+                delta = int(-1 * (event.delta / 120))
+                
+                if delta < 0:
+                    if scroll_position[0] <= 0.0:
+                        canvas.yview_scroll(delta, "units")
+                        return "break"
+                    else:
+                        widget.yview_scroll(delta, "units")
+                        return "break"
+                else:
+                    if scroll_position[1] >= 1.0:
+                        canvas.yview_scroll(delta, "units")
+                        return "break"
+                    else:
+                        widget.yview_scroll(delta, "units")
+                        return "break"
+            else:
+                canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+                return "break"
         
-        def bind_mouse_wheel_recursive(widget):
-            widget.bind("<MouseWheel>", on_mouse_wheel)
+        def bind_smart_scroll_recursive(widget):
+            widget.bind("<MouseWheel>", smart_scroll, add="+")
             for child in widget.winfo_children():
-                bind_mouse_wheel_recursive(child)
+                bind_smart_scroll_recursive(child)
         
-        bind_mouse_wheel_recursive(self.form_frame)
-        canvas.bind("<MouseWheel>", on_mouse_wheel)
+        bind_smart_scroll_recursive(self.form_frame)
+        canvas.bind("<MouseWheel>", smart_scroll, add="+")
         
-        # COLUMNA DERECHA (Vista Previa)
         right_container = tk.Frame(main_paned, bg=MaterialColors.BG_LIGHT)
         
         preview_card = self.create_rounded_frame(right_container, bg='white')
@@ -628,7 +624,7 @@ class RepairReportGenerator:
         preview_header.pack(fill=tk.X)
         preview_header.pack_propagate(False)
         
-        tk.Label(preview_header, text="📄 Vista Previa", font=('Segoe UI', 15, 'bold'),
+        tk.Label(preview_header, text="Vista Previa", font=('Segoe UI', 15, 'bold'),
                 bg=MaterialColors.SUCCESS, fg='white').pack(pady=12)
         
         preview_container = tk.Frame(preview_card, bg='white')
@@ -646,45 +642,41 @@ class RepairReportGenerator:
         self.preview.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         preview_scroll.pack(side=tk.RIGHT, fill=tk.Y)
         
-        self.preview.insert('1.0', "\n\n    📋 Vista Previa del Informe\n\n    "
-                           "✏️ Completa el formulario y genera\n\n    "
-                           "🌐 Se traducirá automáticamente al inglés\n    "
-                           "✅ Se corregirán errores gramaticales\n\n ")
+        self.preview.insert('1.0', "\n\n    Vista Previa del Informe\n\n    "
+                           "Completa el formulario y genera\n\n    "
+                           "Se traducira automaticamente al ingles\n    "
+                           "Se corregiran errores gramaticales\n\n ")
         
-        # Botones vista previa
         btn_preview = tk.Frame(preview_card, bg='white')
         btn_preview.pack(fill=tk.X, padx=15, pady=15)
         
-        # Frame izquierdo para botones de acción
         left_btns = tk.Frame(btn_preview, bg='white')
         left_btns.pack(side=tk.LEFT)
         
-        btn_copy = RoundedButton(left_btns, text="📋 Copiar", 
+        btn_copy = RoundedButton(left_btns, text="Copiar", 
                                 command=self.copy_preview,
                                 bg_color=MaterialColors.PRIMARY,
                                 hover_color=MaterialColors.PRIMARY_HOVER,
                                 width=110, height=38)
         btn_copy.pack(side=tk.LEFT, padx=(0, 5))
         
-        btn_export = RoundedButton(left_btns, text="📄 Exportar", 
+        btn_export = RoundedButton(left_btns, text="Exportar", 
                                   command=self.export_word,
-                                  bg_color=MaterialColors.PRIMARY_LIGHT,
-                                  hover_color=MaterialColors.PRIMARY,
+                                  bg_color=MaterialColors.SUCCESS,
+                                  hover_color=MaterialColors.SUCCESS_HOVER,
                                   width=120, height=38)
         btn_export.pack(side=tk.LEFT, padx=(5, 0))
         
-        # Frame derecho para botón de limpiar
         right_btns = tk.Frame(btn_preview, bg='white')
         right_btns.pack(side=tk.RIGHT)
         
-        btn_clear_prev = RoundedButton(right_btns, text="🗑️ Limpiar", 
+        btn_clear_prev = RoundedButton(right_btns, text="Limpiar", 
                                       command=self.clear_preview,
                                       bg_color=MaterialColors.TEXT_SECONDARY,
                                       hover_color='#525252',
                                       width=110, height=38)
         btn_clear_prev.pack()
         
-        # Agregar paneles al PanedWindow
         main_paned.add(left_container, minsize=600)
         main_paned.add(right_container, minsize=400)
         
@@ -693,7 +685,6 @@ class RepairReportGenerator:
         self.on_type_change()
     
     def setup_tab_order(self):
-        """Configura el orden de navegación con Tab"""
         widgets_order = [
             self.report_type,
             self.summary,
@@ -708,18 +699,15 @@ class RepairReportGenerator:
             if i < len(widgets_order) - 1:
                 next_widget = widgets_order[i+1]
                 
-                # Para el Combobox y Entry, usar evento KeyPress
                 if isinstance(widget, (ttk.Combobox, tk.Entry)):
                     widget.bind('<Tab>', lambda e, nw=next_widget: self.focus_next(nw, e))
                     widget.bind('<Shift-Tab>', lambda e, pw=widgets_order[i-1] if i > 0 else None: 
                                self.focus_previous(pw, e))
-                # Para Text widgets, usar KeyPress también
                 elif isinstance(widget, tk.Text):
                     widget.bind('<Tab>', lambda e, nw=next_widget: self.focus_next(nw, e))
                     widget.bind('<Shift-Tab>', lambda e, pw=widgets_order[i-1] if i > 0 else None: 
                                self.focus_previous(pw, e))
         
-        # Configurar el último widget para volver al primero
         last_widget = widgets_order[-1]
         first_widget = widgets_order[0]
         if isinstance(last_widget, (ttk.Combobox, tk.Entry)):
@@ -728,31 +716,20 @@ class RepairReportGenerator:
             last_widget.bind('<Tab>', lambda e, fw=first_widget: self.focus_next(fw, e))
     
     def focus_next(self, widget, event):
-        """Mueve el foco al siguiente widget"""
         widget.focus_set()
         return 'break'
     
     def focus_previous(self, widget, event):
-        """Mueve el foco al widget anterior"""
         if widget:
             widget.focus_set()
         return 'break'
     
     def setup_keyboard_shortcuts(self):
-        """Configura atajos de teclado"""
-        # Ctrl+S para generar (prevenir el guardado por defecto del SO)
         self.root.bind('<Control-s>', lambda e: (self.generate(), 'break'))
-        
-        # Ctrl+N para limpiar
         self.root.bind('<Control-n>', lambda e: (self.clear_form(), 'break'))
-        
-        # Ctrl+E para exportar
         self.root.bind('<Control-e>', lambda e: (self.export_word(), 'break'))
-        
-        # Ctrl+Q para salir (opcional pero útil)
         self.root.bind('<Control-q>', lambda e: self.root.quit())
         
-        # ESC para limpiar el campo actual
         def clear_current_field(event):
             widget = self.root.focus_get()
             if isinstance(widget, tk.Entry):
@@ -767,7 +744,6 @@ class RepairReportGenerator:
         self.root.bind('<Escape>', clear_current_field)
     
     def add_section(self, title, row, icon=""):
-        """Crea una sección"""
         card = tk.Frame(self.form_frame, bg=MaterialColors.BG_LIGHT, relief=tk.FLAT)
         card.grid(row=row, column=0, sticky='ew', padx=20, pady=(15, 8))
         
@@ -795,13 +771,9 @@ class RepairReportGenerator:
                 widget.grid()
             for widget in self.expected_widgets:
                 widget.grid()
-        
         elif report_type == "REOPENED":
             for widget in self.procedure_widgets:
                 widget.grid()
-        
-        elif report_type == "VERIFIED":
-            pass
     
     def reset_proc(self):
         self.procedure.delete('1.0', tk.END)
@@ -823,23 +795,23 @@ class RepairReportGenerator:
     def copy_preview(self):
         content = self.preview.get('1.0', 'end-1c')
         if not content.strip() or "Vista Previa" in content:
-            messagebox.showwarning("⚠️ Advertencia", "Genera primero un informe")
+            messagebox.showwarning("Advertencia", "Genera primero un informe")
             return
         self.root.clipboard_clear()
         self.root.clipboard_append(content)
-        messagebox.showinfo("✅ Copiado", "Informe copiado al portapapeles")
+        messagebox.showinfo("Copiado", "Informe copiado al portapapeles")
     
     def clear_preview(self):
         self.preview.delete('1.0', tk.END)
-        self.preview.insert('1.0', "\n\n    📋 Vista Previa del Informe\n\n    "
-                           "✏️ Completa el formulario y genera\n\n    "
-                           "🌐 Se traducirá automáticamente al inglés\n    "
-                           "✅ Se corregirán errores gramaticales\n\n ")
+        self.preview.insert('1.0', "\n\n    Vista Previa del Informe\n\n    "
+                           "Completa el formulario y genera\n\n    "
+                           "Se traducira automaticamente al ingles\n    "
+                           "Se corregiran errores gramaticales\n\n ")
     
     def export_word(self):
         content = self.preview.get('1.0', 'end-1c').strip()
         if not content or "Vista Previa" in content:
-            messagebox.showwarning("⚠️ Advertencia", "Genera primero un informe")
+            messagebox.showwarning("Advertencia", "Genera primero un informe")
             return
         
         try:
@@ -871,37 +843,37 @@ class RepairReportGenerator:
             )
             if path:
                 doc.save(path)
-                messagebox.showinfo("✅ Exportado", f"Documento guardado en:\n{path}")
+                messagebox.showinfo("Exportado", f"Documento guardado en:\n{path}")
         except Exception as e:
-            messagebox.showerror("❌ Error", str(e))
+            messagebox.showerror("Error", str(e))
     
     def generate(self):
         rt = self.report_type.get()
         
         if rt == "OPENED":
             if not self.summary.get().strip():
-                messagebox.showerror("❌ Error", "Summary obligatorio para OPENED")
+                messagebox.showerror("Error", "Summary obligatorio para OPENED")
                 return
             proc = self.procedure.get_numbered_text()
             if not proc.strip() or proc.strip() == "1.":
-                messagebox.showerror("❌ Error", "Procedimiento obligatorio para OPENED")
+                messagebox.showerror("Error", "Procedimiento obligatorio para OPENED")
                 return
             if not self.expected.get('1.0', tk.END).strip():
-                messagebox.showerror("❌ Error", "Resultado Esperado obligatorio para OPENED")
+                messagebox.showerror("Error", "Resultado Esperado obligatorio para OPENED")
                 return
         
         if not self.equipment.get('1.0', tk.END).strip():
-            messagebox.showerror("❌ Error", "Equipment Information requerido")
+            messagebox.showerror("Error", "Equipment Information requerido")
             return
         if not self.description.get('1.0', tk.END).strip():
-            messagebox.showerror("❌ Error", "Descripción requerida")
+            messagebox.showerror("Error", "Descripcion requerida")
             return
         
         try:
             self.preview.delete('1.0', tk.END)
             
             if rt == "VERIFIED":
-                self.preview.insert(tk.END, "🌐 Traduciendo...\n")
+                self.preview.insert(tk.END, "Traduciendo...\n")
                 self.preview.see(tk.END)
                 self.root.update()
                 
@@ -914,7 +886,7 @@ class RepairReportGenerator:
                 self.preview.insert(tk.END, "The problem is VERIFIED in this version\n\n")
                 self.root.update()
                 
-                self.preview.insert(tk.END, "🌐 Traduciendo descripción...\n")
+                self.preview.insert(tk.END, "Traduciendo descripcion...\n")
                 self.preview.see(tk.END)
                 self.root.update()
                 
@@ -928,7 +900,7 @@ class RepairReportGenerator:
                     self.preview.insert(tk.END, "[Attachments]:\n")
                     self.preview.insert(tk.END, f"{att}\n")
                 
-                messagebox.showinfo("✅ Listo", "Informe generado correctamente")
+                messagebox.showinfo("Listo", "Informe generado correctamente")
                 return
             
             self.preview.insert(tk.END, f"{rt}\n")
@@ -939,7 +911,7 @@ class RepairReportGenerator:
             self.root.update()
             
             if rt == "OPENED":
-                self.preview.insert(tk.END, "🌐 Traduciendo...\n")
+                self.preview.insert(tk.END, "Traduciendo...\n")
                 self.preview.see(tk.END)
                 self.root.update()
                 
@@ -948,7 +920,7 @@ class RepairReportGenerator:
                 self.preview.insert(tk.END, f"Summary: {summ}\n\n")
                 self.root.update()
             
-            self.preview.insert(tk.END, "🌐 Traduciendo...\n")
+            self.preview.insert(tk.END, "Traduciendo...\n")
             self.preview.see(tk.END)
             self.root.update()
             
@@ -958,7 +930,7 @@ class RepairReportGenerator:
             self.preview.insert(tk.END, f"{eq}\n\n")
             self.root.update()
             
-            self.preview.insert(tk.END, "🌐 Traduciendo...\n")
+            self.preview.insert(tk.END, "Traduciendo...\n")
             self.preview.see(tk.END)
             self.root.update()
             
@@ -970,7 +942,7 @@ class RepairReportGenerator:
             
             proc = self.procedure.get_numbered_text()
             if proc.strip() and proc.strip() != "1.":
-                self.preview.insert(tk.END, "🌐 Traduciendo...\n")
+                self.preview.insert(tk.END, "Traduciendo...\n")
                 self.preview.see(tk.END)
                 self.root.update()
                 
@@ -983,7 +955,7 @@ class RepairReportGenerator:
             if rt == "OPENED":
                 exp = self.expected.get('1.0', tk.END).strip()
                 if exp:
-                    self.preview.insert(tk.END, "🌐 Traduciendo...\n")
+                    self.preview.insert(tk.END, "Traduciendo...\n")
                     self.preview.see(tk.END)
                     self.root.update()
                     
@@ -998,10 +970,10 @@ class RepairReportGenerator:
                 self.preview.insert(tk.END, "[Attachments]:\n")
                 self.preview.insert(tk.END, f"{att}\n")
             
-            messagebox.showinfo("✅ Listo", "Informe generado correctamente")
+            messagebox.showinfo("Listo", "Informe generado correctamente")
         
         except Exception as e:
-            messagebox.showerror("❌ Error", str(e))
+            messagebox.showerror("Error", str(e))
 
 if __name__ == "__main__":
     root = tk.Tk()
