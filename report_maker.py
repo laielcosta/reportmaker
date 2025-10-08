@@ -25,24 +25,81 @@ def translate_to_english(text):
     try:
         text = text.strip()
         
-        if len(text) < 500:
+        # Límite seguro para GoogleTranslator (caracteres por chunk)
+        MAX_CHUNK_SIZE = 400
+        
+        # Si el texto es corto, traducir directamente
+        if len(text) <= MAX_CHUNK_SIZE:
             return translator.translate(text)
         
+        # Para textos largos, dividir inteligentemente
+        translated_parts = []
+        
+        # Primero intentar dividir por párrafos (saltos de línea)
         paragraphs = text.split('\n')
-        translated_paragraphs = []
         
         for paragraph in paragraphs:
-            if paragraph.strip():
+            if not paragraph.strip():
+                translated_parts.append('')
+                continue
+            
+            # Si el párrafo es pequeño, traducir directamente
+            if len(paragraph) <= MAX_CHUNK_SIZE:
                 try:
                     translated = translator.translate(paragraph.strip())
-                    translated_paragraphs.append(translated)
+                    translated_parts.append(translated)
                 except Exception as e:
                     print(f"Error traduciendo párrafo: {e}")
-                    translated_paragraphs.append(paragraph)
+                    # Si falla, dividir por oraciones
+                    sentences = paragraph.replace('. ', '.|').replace('? ', '?|').replace('! ', '!|').split('|')
+                    translated_sentences = []
+                    for sentence in sentences:
+                        if sentence.strip():
+                            try:
+                                translated_sentences.append(translator.translate(sentence.strip()))
+                            except:
+                                translated_sentences.append(sentence.strip())
+                    translated_parts.append(' '.join(translated_sentences))
             else:
-                translated_paragraphs.append('')
+                # Párrafo muy largo: dividir en chunks por oraciones
+                sentences = paragraph.replace('. ', '.|').replace('? ', '?|').replace('! ', '!|').split('|')
+                current_chunk = ""
+                translated_chunks = []
+                
+                for sentence in sentences:
+                    sentence = sentence.strip()
+                    if not sentence:
+                        continue
+                    
+                    # Si agregar esta oración excede el límite, traducir el chunk actual
+                    if len(current_chunk) + len(sentence) + 1 > MAX_CHUNK_SIZE:
+                        if current_chunk:
+                            try:
+                                translated_chunks.append(translator.translate(current_chunk))
+                            except Exception as e:
+                                print(f"Error traduciendo chunk: {e}")
+                                translated_chunks.append(current_chunk)
+                            current_chunk = sentence
+                        else:
+                            # Oración individual muy larga, forzar traducción
+                            try:
+                                translated_chunks.append(translator.translate(sentence))
+                            except:
+                                translated_chunks.append(sentence)
+                    else:
+                        current_chunk += (" " if current_chunk else "") + sentence
+                
+                # Traducir el último chunk
+                if current_chunk:
+                    try:
+                        translated_chunks.append(translator.translate(current_chunk))
+                    except Exception as e:
+                        print(f"Error traduciendo último chunk: {e}")
+                        translated_chunks.append(current_chunk)
+                
+                translated_parts.append(' '.join(translated_chunks))
         
-        return '\n'.join(translated_paragraphs)
+        return '\n'.join(translated_parts)
     except Exception as e:
         print(f"Error general en traducción: {e}")
         return text
@@ -355,7 +412,7 @@ class AutoNumberedText(tk.Text):
 class RepairReportGenerator:
     def __init__(self, root):
         self.root = root
-        self.root.title("ReportMaker v1.2.0")
+        self.root.title("ReportMaker v1.2.1")
         self.root.geometry("1450x850")
         self.root.configure(bg=MaterialColors.BG_LIGHT)
         self.root.minsize(1200, 700)
@@ -405,7 +462,7 @@ class RepairReportGenerator:
         
         tk.Label(title_frame, text="ReportMaker", font=('Segoe UI', 20, 'bold'),
                 bg=MaterialColors.PRIMARY, fg='white').pack(side=tk.LEFT)
-        tk.Label(title_frame, text=" v1.2.0", font=('Segoe UI', 11),
+        tk.Label(title_frame, text=" v1.2.1", font=('Segoe UI', 11),
                 bg=MaterialColors.PRIMARY, fg='#CCCCCC').pack(side=tk.LEFT, padx=(5, 0))
         
         main_paned = tk.PanedWindow(self.root, orient=tk.HORIZONTAL, 
@@ -644,8 +701,8 @@ class RepairReportGenerator:
         
         self.preview.insert('1.0', "\n\n    Vista Previa del Informe\n\n    "
                            "Completa el formulario y genera\n\n    "
-                           "Se traducira automaticamente al ingles\n    "
-                           "Se corregiran errores gramaticales\n\n ")
+                           "Se traducirá automáticamente al inglés\n    "
+                           "Se corregirán errores gramaticales\n\n ")
         
         btn_preview = tk.Frame(preview_card, bg='white')
         btn_preview.pack(fill=tk.X, padx=15, pady=15)
