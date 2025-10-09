@@ -6,8 +6,10 @@ from docx.shared import Pt, RGBColor
 import re
 from deep_translator import GoogleTranslator
 import language_tool_python
+import time
 
-translator = GoogleTranslator(source='auto', target='en')
+translator = GoogleTranslator(source='es', target='en')
+
 tool = None
 
 def init_language_tool():
@@ -19,90 +21,104 @@ def init_language_tool():
             pass
     return tool
 
+# Busca tu función translate_to_english (línea ~20-80 aproximadamente)
+# REEMPLAZAR COMPLETA por:
+
+import time  # ← Asegúrate que está en las importaciones arriba
+
 def translate_to_english(text):
+    """
+    Traduce texto de español a inglés con sistema de reintentos.
+    Optimizado para uso individual con IPs únicas.
+    """
     if not text or not text.strip():
         return text
+    
     try:
         text = text.strip()
+        MAX_CHUNK_SIZE = 250
         
-        # Límite seguro para GoogleTranslator (caracteres por chunk)
-        MAX_CHUNK_SIZE = 400
-        
-        # Si el texto es corto, traducir directamente
         if len(text) <= MAX_CHUNK_SIZE:
-            return translator.translate(text)
+            return translate_with_retry(text)  # ← Llama a la nueva función
         
-        # Para textos largos, dividir inteligentemente
-        translated_parts = []
+        sentences = text.replace('. ', '.|').replace('? ', '?|').replace('! ', '!|').split('|')
+        translated_sentences = []
         
-        # Primero intentar dividir por párrafos (saltos de línea)
-        paragraphs = text.split('\n')
-        
-        for paragraph in paragraphs:
-            if not paragraph.strip():
-                translated_parts.append('')
+        for sentence in sentences:
+            sentence = sentence.strip()
+            if not sentence:
                 continue
             
-            # Si el párrafo es pequeño, traducir directamente
-            if len(paragraph) <= MAX_CHUNK_SIZE:
-                try:
-                    translated = translator.translate(paragraph.strip())
-                    translated_parts.append(translated)
-                except Exception as e:
-                    print(f"Error traduciendo párrafo: {e}")
-                    # Si falla, dividir por oraciones
-                    sentences = paragraph.replace('. ', '.|').replace('? ', '?|').replace('! ', '!|').split('|')
-                    translated_sentences = []
-                    for sentence in sentences:
-                        if sentence.strip():
-                            try:
-                                translated_sentences.append(translator.translate(sentence.strip()))
-                            except:
-                                translated_sentences.append(sentence.strip())
-                    translated_parts.append(' '.join(translated_sentences))
-            else:
-                # Párrafo muy largo: dividir en chunks por oraciones
-                sentences = paragraph.replace('. ', '.|').replace('? ', '?|').replace('! ', '!|').split('|')
-                current_chunk = ""
-                translated_chunks = []
-                
-                for sentence in sentences:
-                    sentence = sentence.strip()
-                    if not sentence:
-                        continue
-                    
-                    # Si agregar esta oración excede el límite, traducir el chunk actual
-                    if len(current_chunk) + len(sentence) + 1 > MAX_CHUNK_SIZE:
-                        if current_chunk:
-                            try:
-                                translated_chunks.append(translator.translate(current_chunk))
-                            except Exception as e:
-                                print(f"Error traduciendo chunk: {e}")
-                                translated_chunks.append(current_chunk)
-                            current_chunk = sentence
-                        else:
-                            # Oración individual muy larga, forzar traducción
-                            try:
-                                translated_chunks.append(translator.translate(sentence))
-                            except:
-                                translated_chunks.append(sentence)
-                    else:
-                        current_chunk += (" " if current_chunk else "") + sentence
-                
-                # Traducir el último chunk
-                if current_chunk:
-                    try:
-                        translated_chunks.append(translator.translate(current_chunk))
-                    except Exception as e:
-                        print(f"Error traduciendo último chunk: {e}")
-                        translated_chunks.append(current_chunk)
-                
-                translated_parts.append(' '.join(translated_chunks))
+            translated = translate_with_retry(sentence)  # ← Llama a la nueva función
+            translated_sentences.append(translated)
         
-        return '\n'.join(translated_parts)
+        return ' '.join(translated_sentences)
+        
     except Exception as e:
-        print(f"Error general en traducción: {e}")
+        print(f"🚨 Error general: {e}")
         return text
+
+
+def translate_with_retry(text, max_retries=3):
+    """
+    Intenta traducir con reintentos automáticos.
+    Valida que la traducción no esté truncada.
+    """
+    original_length = len(text)
+    
+    for attempt in range(max_retries):
+        try:
+            translated = translator.translate(text)
+            
+            if len(translated) >= original_length * 0.3:
+                return translated
+            else:
+                print(f"⚠️ Intento {attempt + 1}: Traducción corta")
+                if attempt < max_retries - 1:
+                    time.sleep(0.5)
+                    
+        except Exception as e:
+            print(f"⚠️ Intento {attempt + 1} falló: {e}")
+            if attempt < max_retries - 1:
+                time.sleep(0.5)
+    
+    print(f"⚠️ No se pudo traducir después de {max_retries} intentos")
+    return text
+
+
+def translate_by_sentences(text):
+    """Divide texto en oraciones y traduce cada una."""
+    import time
+    
+    # Dividir por puntos, signos de interrogación y exclamación
+    sentences = text.replace('. ', '.|').replace('? ', '?|').replace('! ', '!|').split('|')
+    translated_sentences = []
+    
+    for i, sentence in enumerate(sentences):
+        sentence = sentence.strip()
+        if not sentence:
+            continue
+        
+        try:
+            # Pequeña pausa para evitar rate limiting
+            if i > 0:
+                time.sleep(0.2)
+            
+            translated = translator.translate(sentence)
+            
+            # Validar longitud
+            if len(translated) >= len(sentence) * 0.3:
+                translated_sentences.append(translated)
+            else:
+                # Si falla, dividir en palabras
+                print(f"⚠️ Oración truncada, usando original")
+                translated_sentences.append(sentence)
+                
+        except Exception as e:
+            print(f"⚠️ Error en oración: {e}")
+            translated_sentences.append(sentence)
+    
+    return ' '.join(translated_sentences)
 
 def correct_grammar(text):
     if not text or not text.strip():
@@ -122,6 +138,10 @@ def translate_and_correct(text):
     return correct_grammar(translate_to_english(text))
 
 def translate_equipment_info(text):
+    """
+    Traduce información de equipo línea por línea.
+    Usa división por oraciones para valores largos.
+    """
     if not text or not text.strip():
         return text
     
@@ -148,20 +168,39 @@ def translate_equipment_info(text):
                 field = parts[0].strip().lower()
                 value = parts[1].strip()
                 
+                # Traducir el nombre del campo
                 if field in translations:
                     field_translated = translations[field]
                 else:
                     try:
-                        field_translated = GoogleTranslator(source='auto', target='en').translate(parts[0].strip())
+                        field_translated = translate_with_retry(parts[0].strip())
                     except:
                         field_translated = parts[0].strip()
                 
-                result.append(f"{field_translated}: {value}")
+                # NUEVO: Si el valor es muy largo (>80 chars), traducirlo con división
+                if len(value) > 80:
+                    try:
+                        value_translated = translate_to_english(value)
+                    except:
+                        value_translated = value
+                else:
+                    # Valores cortos pueden quedarse sin traducir si son técnicos
+                    # O traducirlos si parecen descriptivos
+                    if any(word in value.lower() for word in ['configurado', 'activa', 'funcionando', 'habilitado', 'deshabilitado']):
+                        try:
+                            value_translated = translate_with_retry(value)
+                        except:
+                            value_translated = value
+                    else:
+                        value_translated = value
+                
+                result.append(f"{field_translated}: {value_translated}")
             else:
                 result.append(line)
         else:
+            # Línea sin dos puntos, traducir completa
             try:
-                line_translated = GoogleTranslator(source='auto', target='en').translate(line)
+                line_translated = translate_to_english(line)
                 result.append(line_translated)
             except:
                 result.append(line)
@@ -412,7 +451,7 @@ class AutoNumberedText(tk.Text):
 class RepairReportGenerator:
     def __init__(self, root):
         self.root = root
-        self.root.title("ReportMaker v1.2.1")
+        self.root.title("ReportMaker v1.2.2")
         self.root.geometry("1450x850")
         self.root.configure(bg=MaterialColors.BG_LIGHT)
         self.root.minsize(1200, 700)
@@ -424,7 +463,7 @@ class RepairReportGenerator:
         self.expected_widgets = []
         
         self.create_widgets()
-        
+
     def setup_modern_style(self):
         style = ttk.Style()
         style.theme_use('clam')
@@ -462,7 +501,7 @@ class RepairReportGenerator:
         
         tk.Label(title_frame, text="ReportMaker", font=('Segoe UI', 20, 'bold'),
                 bg=MaterialColors.PRIMARY, fg='white').pack(side=tk.LEFT)
-        tk.Label(title_frame, text=" v1.2.1", font=('Segoe UI', 11),
+        tk.Label(title_frame, text=" v1.2.2", font=('Segoe UI', 11),
                 bg=MaterialColors.PRIMARY, fg='#CCCCCC').pack(side=tk.LEFT, padx=(5, 0))
         
         main_paned = tk.PanedWindow(self.root, orient=tk.HORIZONTAL, 
@@ -700,7 +739,7 @@ class RepairReportGenerator:
         preview_scroll.pack(side=tk.RIGHT, fill=tk.Y)
         
         self.preview.insert('1.0', "\n\n    Vista Previa del Informe\n\n    "
-                           "Completa el formulario y genera\n\n    "
+                           "Completa el formulario y haz clic en Generar\n\n    "
                            "Se traducirá automáticamente al inglés\n    "
                            "Se corregirán errores gramaticales\n\n ")
         
@@ -861,9 +900,9 @@ class RepairReportGenerator:
     def clear_preview(self):
         self.preview.delete('1.0', tk.END)
         self.preview.insert('1.0', "\n\n    Vista Previa del Informe\n\n    "
-                           "Completa el formulario y genera\n\n    "
-                           "Se traducira automaticamente al ingles\n    "
-                           "Se corregiran errores gramaticales\n\n ")
+                           "Completa el formulario y haz clic en Generar\n\n    "
+                           "Se traducirá automáticamente al inglés\n    "
+                           "Se corregirán errores gramaticales\n\n ")
     
     def export_word(self):
         content = self.preview.get('1.0', 'end-1c').strip()
@@ -905,6 +944,9 @@ class RepairReportGenerator:
             messagebox.showerror("Error", str(e))
     
     def generate(self):
+        self.root.focus_set()
+        self.root.update_idletasks()
+        
         rt = self.report_type.get()
         
         if rt == "OPENED":
