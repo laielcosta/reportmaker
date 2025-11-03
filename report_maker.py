@@ -21,10 +21,7 @@ def init_language_tool():
             pass
     return tool
 
-# Busca tu función translate_to_english (línea ~20-80 aproximadamente)
-# REEMPLAZAR COMPLETA por:
-
-import time  # ← Asegúrate que está en las importaciones arriba
+import time
 
 def translate_to_english(text):
     """
@@ -39,7 +36,7 @@ def translate_to_english(text):
         MAX_CHUNK_SIZE = 250
         
         if len(text) <= MAX_CHUNK_SIZE:
-            return translate_with_retry(text)  # ← Llama a la nueva función
+            return translate_with_retry(text)
         
         sentences = text.replace('. ', '.|').replace('? ', '?|').replace('! ', '!|').split('|')
         translated_sentences = []
@@ -49,7 +46,7 @@ def translate_to_english(text):
             if not sentence:
                 continue
             
-            translated = translate_with_retry(sentence)  # ← Llama a la nueva función
+            translated = translate_with_retry(sentence)
             translated_sentences.append(translated)
         
         return ' '.join(translated_sentences)
@@ -90,7 +87,6 @@ def translate_by_sentences(text):
     """Divide texto en oraciones y traduce cada una."""
     import time
     
-    # Dividir por puntos, signos de interrogación y exclamación
     sentences = text.replace('. ', '.|').replace('? ', '?|').replace('! ', '!|').split('|')
     translated_sentences = []
     
@@ -100,17 +96,14 @@ def translate_by_sentences(text):
             continue
         
         try:
-            # Pequeña pausa para evitar rate limiting
             if i > 0:
                 time.sleep(0.2)
             
             translated = translator.translate(sentence)
             
-            # Validar longitud
             if len(translated) >= len(sentence) * 0.3:
                 translated_sentences.append(translated)
             else:
-                # Si falla, dividir en palabras
                 print(f"⚠️ Oración truncada, usando original")
                 translated_sentences.append(sentence)
                 
@@ -168,7 +161,6 @@ def translate_equipment_info(text):
                 field = parts[0].strip().lower()
                 value = parts[1].strip()
                 
-                # Traducir el nombre del campo
                 if field in translations:
                     field_translated = translations[field]
                 else:
@@ -177,15 +169,12 @@ def translate_equipment_info(text):
                     except:
                         field_translated = parts[0].strip()
                 
-                # NUEVO: Si el valor es muy largo (>80 chars), traducirlo con división
                 if len(value) > 80:
                     try:
                         value_translated = translate_to_english(value)
                     except:
                         value_translated = value
                 else:
-                    # Valores cortos pueden quedarse sin traducir si son técnicos
-                    # O traducirlos si parecen descriptivos
                     if any(word in value.lower() for word in ['configurado', 'activa', 'funcionando', 'habilitado', 'deshabilitado']):
                         try:
                             value_translated = translate_with_retry(value)
@@ -198,7 +187,6 @@ def translate_equipment_info(text):
             else:
                 result.append(line)
         else:
-            # Línea sin dos puntos, traducir completa
             try:
                 line_translated = translate_to_english(line)
                 result.append(line_translated)
@@ -423,18 +411,191 @@ class AutoNumberedText(tk.Text):
     def __init__(self, master=None, **kwargs):
         super().__init__(master, **kwargs)
         self.bind('<Return>', self.auto_number)
-        self.line_count = 0
+        self.bind('<BackSpace>', self.handle_backspace)
+        self.bind('<Delete>', self.handle_delete)
         self.configure(undo=True, maxundo=-1)
+        self._renumbering = False
     
     def auto_number(self, event):
-        content = self.get('1.0', 'end-1c')
-        lines = [l.strip() for l in content.split('\n') if l.strip()]
-        self.line_count = len(lines)
-        self.insert('insert', f'\n{self.line_count + 1}. ')
+        # Obtener la posición actual del cursor
+        current_line = self.index('insert').split('.')[0]
+        current_line_num = int(current_line)
+        
+        # Obtener el contenido de la línea actual
+        current_content = self.get(f"{current_line}.0", f"{current_line}.end")
+        
+        # Extraer el número actual si existe
+        match = re.match(r'^(\d+)\.\s*', current_content)
+        if match:
+            next_num = int(match.group(1)) + 1
+        else:
+            # Si no hay número, contar las líneas con contenido
+            content = self.get('1.0', 'end-1c')
+            lines = [l.strip() for l in content.split('\n') if l.strip()]
+            next_num = len(lines) + 1
+        
+        # Insertar nueva línea con numeración
+        self.insert('insert', f'\n{next_num}. ')
+        
+        # Renumerar líneas posteriores
+        self.after(1, lambda: self.renumber_from_line(current_line_num + 2, next_num + 1))
+        
         return 'break'
     
-    def reset_numbering(self):
-        self.line_count = 0
+    def handle_backspace(self, event):
+        """Maneja el borrado con BackSpace y renumera inmediatamente"""
+        if self._renumbering:
+            return None
+        
+        try:
+            # Obtener la selección actual
+            if self.tag_ranges("sel"):
+                # Si hay texto seleccionado, programar renumeración después del borrado
+                self.after(1, self.renumber_all_lines)
+                return None
+            
+            # Obtener posición actual
+            current_pos = self.index('insert')
+            current_line_num = int(current_pos.split('.')[0])
+            current_col = int(current_pos.split('.')[1])
+            
+            # Si estamos al inicio de una línea (col 0)
+            if current_col == 0 and current_line_num > 1:
+                # Vamos a unir con la línea anterior
+                prev_line = self.get(f"{current_line_num-1}.0", f"{current_line_num-1}.end")
+                current_line = self.get(f"{current_line_num}.0", f"{current_line_num}.end")
+                
+                # Si la línea actual está numerada y tiene contenido
+                match_current = re.match(r'^\d+\.\s*(.*)$', current_line)
+                if match_current and match_current.group(1).strip():
+                    # Programar renumeración después de la unión
+                    self.after(1, self.renumber_all_lines)
+            else:
+                # Obtener contenido de la línea actual
+                line_content = self.get(f"{current_line_num}.0", f"{current_line_num}.end")
+                
+                # Si después del backspace la línea quedará vacía o solo con número
+                if len(line_content.strip()) <= 3:  # "X. " o menos
+                    self.after(1, self.renumber_all_lines)
+        except:
+            pass
+        
+        return None
+    
+    def handle_delete(self, event):
+        """Maneja el borrado con Delete y renumera inmediatamente"""
+        if self._renumbering:
+            return None
+        
+        try:
+            # Si hay selección, programar renumeración
+            if self.tag_ranges("sel"):
+                self.after(1, self.renumber_all_lines)
+                return None
+            
+            # Obtener posición actual
+            current_pos = self.index('insert')
+            current_line_num = int(current_pos.split('.')[0])
+            line_content = self.get(f"{current_line_num}.0", f"{current_line_num}.end")
+            current_col = int(current_pos.split('.')[1])
+            
+            # Si estamos al final de la línea, se unirá con la siguiente
+            if current_col >= len(line_content):
+                self.after(1, self.renumber_all_lines)
+            else:
+                # Si la línea quedará vacía después del delete
+                if len(line_content.strip()) <= 3:
+                    self.after(1, self.renumber_all_lines)
+        except:
+            pass
+        
+        return None
+    
+    def renumber_from_line(self, start_line, start_num):
+        """Renumera las líneas desde start_line con numeración consecutiva"""
+        if self._renumbering:
+            return
+        
+        self._renumbering = True
+        try:
+            total_lines = int(self.index('end-1c').split('.')[0])
+            current_num = start_num
+            
+            for line_num in range(start_line, total_lines + 1):
+                line_content = self.get(f"{line_num}.0", f"{line_num}.end")
+                
+                # Si la línea tiene numeración, actualizarla
+                match = re.match(r'^\d+\.\s*(.*)$', line_content)
+                if match:
+                    rest_of_line = match.group(1)
+                    if rest_of_line.strip():  # Solo si hay contenido
+                        self.delete(f"{line_num}.0", f"{line_num}.end")
+                        self.insert(f"{line_num}.0", f"{current_num}. {rest_of_line}")
+                        current_num += 1
+        finally:
+            self._renumbering = False
+    
+    def renumber_all_lines(self):
+        """Renumera TODAS las líneas del documento manteniendo orden consecutivo"""
+        if self._renumbering:
+            return
+        
+        self._renumbering = True
+        try:
+            # Guardar posición del cursor
+            try:
+                cursor_pos = self.index('insert')
+                cursor_line = int(cursor_pos.split('.')[0])
+                cursor_col = int(cursor_pos.split('.')[1])
+            except:
+                cursor_pos = '1.0'
+                cursor_line = 1
+                cursor_col = 0
+            
+            content = self.get('1.0', 'end-1c')
+            lines = content.split('\n')
+            
+            current_num = 1
+            line_number_changes = {}  # Mapeo de número viejo a nuevo
+            
+            for line_idx, line in enumerate(lines):
+                line_num = line_idx + 1
+                
+                # Si la línea tiene numeración
+                match = re.match(r'^(\d+)\.\s*(.*)$', line)
+                if match:
+                    old_num = int(match.group(1))
+                    rest_of_line = match.group(2).strip()
+                    
+                    if rest_of_line:  # Solo si hay contenido después del número
+                        line_number_changes[old_num] = current_num
+                        expected_text = f"{current_num}. {rest_of_line}"
+                        current_text = self.get(f"{line_num}.0", f"{line_num}.end")
+                        
+                        # Solo actualizar si cambió
+                        if current_text != expected_text:
+                            self.delete(f"{line_num}.0", f"{line_num}.end")
+                            self.insert(f"{line_num}.0", expected_text)
+                        
+                        current_num += 1
+                    else:
+                        # Línea con solo número, eliminarla
+                        self.delete(f"{line_num}.0", f"{line_num}.end")
+            
+            # Restaurar posición del cursor de manera inteligente
+            try:
+                new_cursor_pos = f"{cursor_line}.{cursor_col}"
+                self.mark_set('insert', new_cursor_pos)
+            except:
+                try:
+                    self.mark_set('insert', '1.0')
+                except:
+                    pass
+                    
+        except Exception as e:
+            pass
+        finally:
+            self._renumbering = False
     
     def get_numbered_text(self):
         content = self.get('1.0', 'end-1c')
@@ -447,11 +608,11 @@ class AutoNumberedText(tk.Text):
                 clean.append(f"{counter}. {clean_line}")
                 counter += 1
         return '\n'.join(clean)
-
+    
 class RepairReportGenerator:
     def __init__(self, root):
         self.root = root
-        self.root.title("ReportMaker v1.2.2")
+        self.root.title("ReportMaker v1.2.5")
         self.root.geometry("1450x850")
         self.root.configure(bg=MaterialColors.BG_LIGHT)
         self.root.minsize(1200, 700)
@@ -461,6 +622,7 @@ class RepairReportGenerator:
         self.summary_widgets = []
         self.procedure_widgets = []
         self.expected_widgets = []
+        self.always_visible_widgets = []
         
         self.create_widgets()
 
@@ -501,7 +663,7 @@ class RepairReportGenerator:
         
         tk.Label(title_frame, text="ReportMaker", font=('Segoe UI', 20, 'bold'),
                 bg=MaterialColors.PRIMARY, fg='white').pack(side=tk.LEFT)
-        tk.Label(title_frame, text=" v1.2.2", font=('Segoe UI', 11),
+        tk.Label(title_frame, text=" v1.2.5", font=('Segoe UI', 11),
                 bg=MaterialColors.PRIMARY, fg='#CCCCCC').pack(side=tk.LEFT, padx=(5, 0))
         
         main_paned = tk.PanedWindow(self.root, orient=tk.HORIZONTAL, 
@@ -592,6 +754,57 @@ class RepairReportGenerator:
         desc_scroll.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 5), pady=10)
         row_counter += 1
         
+        # ========== LOGS DE CONSOLA ==========
+        logs_label = self.add_section("Logs de Consola (Opcional)", row_counter, icon="")
+        self.always_visible_widgets.append(logs_label)
+        row_counter += 1
+        
+        logs_frame = self.create_rounded_frame(self.form_frame, bg='#2b2b2b')
+        logs_frame.grid(row=row_counter, column=0, sticky='ew', padx=30, pady=(0, 25))
+        self.always_visible_widgets.append(logs_frame)
+        
+        logs_text_frame = tk.Frame(logs_frame, bg='#2b2b2b')
+        logs_text_frame.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+        
+        self.console_logs = tk.Text(
+            logs_text_frame, 
+            font=('Consolas', 9),
+            bg='#1e1e1e',
+            fg='#00ff00',
+            height=6,
+            relief=tk.FLAT, 
+            borderwidth=0, 
+            wrap=tk.WORD, 
+            undo=True, 
+            maxundo=-1,
+            insertbackground='#00ff00'
+        )
+        
+        logs_scroll = ModernScrollbar(logs_text_frame, orient="vertical", command=self.console_logs.yview)
+        self.console_logs.configure(yscrollcommand=logs_scroll.set)
+        
+        self.console_logs.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10)
+        logs_scroll.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 5), pady=10)
+        
+        placeholder_logs = "# Pega aquí los logs de consola (opcional)\n# No se traducirán ni corregirán\n# Ejemplo:\n# [ERROR] Connection timeout at 192.168.1.1\n# [INFO] Retry attempt 3/5..."
+        self.console_logs.insert('1.0', placeholder_logs)
+        self.console_logs.config(fg='#666666')
+        
+        def on_logs_focus_in(event):
+            if self.console_logs.get('1.0', 'end-1c') == placeholder_logs:
+                self.console_logs.delete('1.0', tk.END)
+                self.console_logs.config(fg='#00ff00')
+        
+        def on_logs_focus_out(event):
+            if not self.console_logs.get('1.0', 'end-1c').strip():
+                self.console_logs.insert('1.0', placeholder_logs)
+                self.console_logs.config(fg='#666666')
+        
+        self.console_logs.bind('<FocusIn>', on_logs_focus_in)
+        self.console_logs.bind('<FocusOut>', on_logs_focus_out)
+        row_counter += 1
+        # =====================================
+
         proc_card = self.add_section("Procedimiento", row_counter, icon="")
         self.procedure_widgets.append(proc_card)
         row_counter += 1
@@ -775,10 +988,21 @@ class RepairReportGenerator:
         
         main_paned.add(left_container, minsize=600)
         main_paned.add(right_container, minsize=400)
-        
-        self.setup_keyboard_shortcuts()
-        self.setup_tab_order()
-        self.on_type_change()
+
+        # ========== FOOTER CON CRÉDITOS ==========
+
+        footer = tk.Frame(self.root, bg=MaterialColors.BG_LIGHT, height=35)
+        footer.pack(fill=tk.X, side=tk.BOTTOM)
+        footer.pack_propagate(False)
+
+        tk.Label(
+            footer, 
+            text="© 2025 Luis Miguel Acosta & Coral Burgos",
+            font=('Segoe UI', 10),
+            bg=MaterialColors.BG_LIGHT,
+            fg='#999999',
+            anchor='center'
+        ).pack(expand=True, fill=tk.BOTH)
     
     def setup_tab_order(self):
         widgets_order = [
@@ -786,6 +1010,7 @@ class RepairReportGenerator:
             self.summary,
             self.equipment,
             self.description,
+            self.console_logs,
             self.procedure,
             self.expected,
             self.attachments
@@ -833,7 +1058,6 @@ class RepairReportGenerator:
             elif isinstance(widget, tk.Text):
                 widget.delete('1.0', tk.END)
                 if widget == self.procedure:
-                    self.procedure.reset_numbering()
                     self.procedure.insert('1.0', '1. ')
             return 'break'
         
@@ -870,18 +1094,25 @@ class RepairReportGenerator:
         elif report_type == "REOPENED":
             for widget in self.procedure_widgets:
                 widget.grid()
+        
+        for widget in self.always_visible_widgets:
+            widget.grid()
     
     def reset_proc(self):
         self.procedure.delete('1.0', tk.END)
-        self.procedure.reset_numbering()
         self.procedure.insert('1.0', '1. ')
     
     def clear_form(self):
         self.summary.delete(0, tk.END)
         self.equipment.delete('1.0', tk.END)
         self.description.delete('1.0', tk.END)
+        
+        placeholder_logs = "# Pega aquí los logs de consola (opcional)\n# No se traducirán ni corregirán\n# Ejemplo:\n# [ERROR] Connection timeout at 192.168.1.1\n# [INFO] Retry attempt 3/5..."
+        self.console_logs.delete('1.0', tk.END)
+        self.console_logs.insert('1.0', placeholder_logs)
+        self.console_logs.config(fg='#666666')
+        
         self.procedure.delete('1.0', tk.END)
-        self.procedure.reset_numbering()
         self.procedure.insert('1.0', '1. ')
         self.expected.delete('1.0', tk.END)
         self.attachments.delete(0, tk.END)
@@ -912,6 +1143,8 @@ class RepairReportGenerator:
         
         try:
             doc = Document()
+            in_console_section = False
+            
             for line in content.split('\n'):
                 if line.strip():
                     if line.strip() in ['OPENED', 'REOPENED', 'VERIFIED']:
@@ -923,11 +1156,48 @@ class RepairReportGenerator:
                             run.font.color.rgb = RGBColor(255, 0, 0)
                         elif 'VERIFIED' in line:
                             run.font.color.rgb = RGBColor(0, 128, 0)
+                        in_console_section = False
                     elif line.strip().startswith('[') and line.strip().endswith(']:'):
                         p = doc.add_paragraph()
-                        p.add_run(line).bold = True
+                        run = p.add_run(line)
+                        run.bold = True
+                        
+                        if '[Console Logs]:' in line:
+                            in_console_section = True
+                        else:
+                            in_console_section = False
                     else:
-                        doc.add_paragraph(line)
+                        p = doc.add_paragraph()
+                        
+                        # Aplicar color especial para palabras clave en el texto
+                        if 'VERIFIED' in line:
+                            parts = line.split('VERIFIED')
+                            for i, part in enumerate(parts):
+                                if i > 0:
+                                    run = p.add_run('VERIFIED')
+                                    run.font.color.rgb = RGBColor(16, 124, 16)
+                                    run.bold = True
+                                if part:
+                                    run = p.add_run(part)
+                        elif 'REOPENED' in line:
+                            parts = line.split('REOPENED')
+                            for i, part in enumerate(parts):
+                                if i > 0:
+                                    run = p.add_run('REOPENED')
+                                    run.font.color.rgb = RGBColor(204, 0, 0)
+                                    run.bold = True
+                                if part:
+                                    run = p.add_run(part)
+                        else:
+                            run = p.add_run(line)
+                        
+                        # Aplicar formato de consola si estamos en esa sección
+                        if in_console_section:
+                            for run in p.runs:
+                                run.font.name = 'Consolas'
+                                run.font.size = Pt(9)
+                                if run.font.color.rgb != RGBColor(16, 124, 16) and run.font.color.rgb != RGBColor(204, 0, 0):
+                                    run.font.color.rgb = RGBColor(0, 102, 0)
                 else:
                     doc.add_paragraph()
             
@@ -971,6 +1241,11 @@ class RepairReportGenerator:
         try:
             self.preview.delete('1.0', tk.END)
             
+            # Configurar tags de formato
+            self.preview.tag_config("verified_word", foreground='#107C10', font=('Consolas', 10, 'bold'))
+            self.preview.tag_config("reopened_word", foreground='#CC0000', font=('Consolas', 10, 'bold'))
+            self.preview.tag_config("console_logs", font=('Consolas', 9), foreground='#006600', background='#f0f0f0')
+            
             if rt == "VERIFIED":
                 self.preview.insert(tk.END, "Traduciendo...\n")
                 self.preview.see(tk.END)
@@ -982,7 +1257,15 @@ class RepairReportGenerator:
                 self.preview.insert(tk.END, f"{eq}\n\n")
                 self.root.update()
                 
-                self.preview.insert(tk.END, "The problem is VERIFIED in this version\n\n")
+                # Insertar "VERIFIED" con color verde
+                verified_text = "The problem is VERIFIED in this version\n\n"
+                start = self.preview.index("end-1c")
+                self.preview.insert(tk.END, verified_text)
+                
+                # Aplicar tag solo a la palabra VERIFIED
+                verified_start = f"{start} + {verified_text.index('VERIFIED')}c"
+                verified_end = f"{verified_start} + 8c"
+                self.preview.tag_add("verified_word", verified_start, verified_end)
                 self.root.update()
                 
                 self.preview.insert(tk.END, "Traduciendo descripcion...\n")
@@ -994,6 +1277,17 @@ class RepairReportGenerator:
                 self.preview.insert(tk.END, f"{desc}\n\n")
                 self.root.update()
                 
+                logs = self.console_logs.get('1.0', tk.END).strip()
+                
+                if logs and not logs.startswith("#"):
+                    self.preview.insert(tk.END, "[Console Logs]:\n")
+                    start_idx = self.preview.index("end-1c")
+                    self.preview.insert(tk.END, f"{logs}\n\n")
+                    end_idx = self.preview.index("end-1c")
+                    
+                    self.preview.tag_add("console_logs", start_idx, end_idx)
+                    self.root.update()
+                
                 att = self.attachments.get().strip()
                 if att:
                     self.preview.insert(tk.END, "[Attachments]:\n")
@@ -1004,7 +1298,14 @@ class RepairReportGenerator:
             
             self.preview.insert(tk.END, f"{rt}\n")
             if rt == "REOPENED":
-                self.preview.insert(tk.END, "The problem continues, REOPENED in this version.\n\n")
+                reopened_text = "The problem continues, REOPENED in this version.\n\n"
+                start = self.preview.index("end-1c")
+                self.preview.insert(tk.END, reopened_text)
+                
+                # Aplicar tag solo a la palabra REOPENED
+                reopened_start = f"{start} + {reopened_text.index('REOPENED')}c"
+                reopened_end = f"{reopened_start} + 8c"
+                self.preview.tag_add("reopened_word", reopened_start, reopened_end)
             else:
                 self.preview.insert(tk.END, "\n")
             self.root.update()
@@ -1038,6 +1339,17 @@ class RepairReportGenerator:
             self.preview.insert(tk.END, "[Fault]:\n")
             self.preview.insert(tk.END, f"{fault}\n\n")
             self.root.update()
+            
+            logs = self.console_logs.get('1.0', tk.END).strip()
+            
+            if logs and not logs.startswith("#"):
+                self.preview.insert(tk.END, "[Console Logs]:\n")
+                start_idx = self.preview.index("end-1c")
+                self.preview.insert(tk.END, f"{logs}\n\n")
+                end_idx = self.preview.index("end-1c")
+                
+                self.preview.tag_add("console_logs", start_idx, end_idx)
+                self.root.update()
             
             proc = self.procedure.get_numbered_text()
             if proc.strip() and proc.strip() != "1.":
